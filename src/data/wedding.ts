@@ -177,18 +177,18 @@ export const vendors: Vendor[] = [
 ];
 
 export type Guest = { name: string; hotel: string | null; slot: string; pickup: "Assigned" | "Pending" | "Not needed" };
-const hotels = ["Taj City Centre", "Lemon Tree Sohna", "Radisson Gurugram"];
+const hotels: string[] = ["Taj City Centre", "Lemon Tree Sohna", "Radisson Gurugram"];
 export const guests: Guest[] = [
-  { name: "Lakshmi", hotel: hotels[0], slot: "A1", pickup: "Assigned" },
-  { name: "Latha", hotel: hotels[0], slot: "A1", pickup: "Assigned" },
-  { name: "Suresh uncle", hotel: hotels[0], slot: "A2", pickup: "Assigned" },
-  { name: "Radha", hotel: hotels[1], slot: "A2", pickup: "Assigned" },
-  { name: "Gopal", hotel: hotels[1], slot: "B1", pickup: "Assigned" },
+  { name: "Lakshmi", hotel: hotels[0]!, slot: "A1", pickup: "Assigned" },
+  { name: "Latha", hotel: hotels[0]!, slot: "A1", pickup: "Assigned" },
+  { name: "Suresh uncle", hotel: hotels[0]!, slot: "A2", pickup: "Assigned" },
+  { name: "Radha", hotel: hotels[1]!, slot: "A2", pickup: "Assigned" },
+  { name: "Gopal", hotel: hotels[1]!, slot: "B1", pickup: "Assigned" },
   { name: "Madhavan K", hotel: null, slot: "B2", pickup: "Pending" },
   ...Array.from({ length: 10 }, (_, i): Guest => ({
     name: `Guest ${i + 1}`,
-    hotel: hotels[i % 3],
-    slot: ["A1", "A2", "B1", "B2"][i % 4],
+    hotel: hotels[i % 3]!,
+    slot: ["A1", "A2", "B1", "B2"][i % 4]!,
     pickup: i % 4 === 3 ? "Not needed" : "Assigned",
   })),
 ];
