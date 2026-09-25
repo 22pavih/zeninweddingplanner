@@ -29,7 +29,7 @@ export function DecisionCard({ d, onResolve, compact }: { d: Decision; onResolve
       )}
       {!compact && (
         <div className="mt-3 rounded-xl bg-secondary p-3 text-sm">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gold">Munshi suggests</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gold">Zenin suggests</p>
           <p className="text-secondary-foreground">{d.suggestion}</p>
         </div>
       )}
