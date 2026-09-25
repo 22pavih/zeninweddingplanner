@@ -5,16 +5,16 @@ import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CalendarHeart, Check, ChevronDown, ChevronRight, ListChecks, Phone, Store, Users } from "lucide-react";
 import { decisions as allDecisions, gaps as allGaps, guests, handled, images, today, vendors, wedding, type Vendor } from "@/data/wedding";
-import { Banner, Chip, GoldCard, SectionTitle } from "@/components/munshi/ui";
-import { DecisionCard } from "@/components/munshi/DecisionCard";
+import { Banner, Chip, GoldCard, SectionTitle } from "@/components/zenin/ui";
+import { DecisionCard } from "@/components/zenin/DecisionCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Munshi — Priya's Wedding Dashboard" },
-      { name: "description", content: "What needs Priya today, what Munshi handled, and what vendors said." },
-      { property: "og:title", content: "Munshi — Priya's Wedding Dashboard" },
-      { property: "og:description", content: "What needs Priya today, what Munshi handled, and what vendors said." },
+      { title: "Zenin — Priya's Wedding Dashboard" },
+      { name: "description", content: "What needs Priya today, what Zenin handled, and what vendors said." },
+      { property: "og:title", content: "Zenin — Priya's Wedding Dashboard" },
+      { property: "og:description", content: "What needs Priya today, what Zenin handled, and what vendors said." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:image", content: images.hero },
@@ -32,7 +32,7 @@ function App() {
   const resolve = (id: string, ok: boolean) => {
     const d = pending.find((x) => x.id === id);
     setPending((p) => p.filter((x) => x.id !== id));
-    toast(ok ? `Approved. Munshi will tell ${d?.who}.` : `Declined. Munshi will let ${d?.who} know.`);
+    toast(ok ? `Approved. Zenin will tell ${d?.who}.` : `Declined. Zenin will let ${d?.who} know.`);
   };
   const go = (t: Tab) => { setTab(t); window.scrollTo({ top: 0 }); };
 
@@ -85,7 +85,7 @@ function TodayTab({ pending, resolve, goDecisions }: { pending: typeof allDecisi
         <img src={images.hero} alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-maroon via-primary/75 to-maroon/30" />
         <div className="relative flex h-full flex-col justify-between p-5 text-primary-foreground">
-          <p className="font-serif text-lg tracking-wide text-gold">Munshi</p>
+          <p className="font-serif text-lg tracking-wide text-gold">Zenin</p>
           <div>
             <p className="text-sm opacity-85">Good evening, Priya</p>
             <p className="mt-1 font-serif text-6xl font-semibold leading-none">{days ?? "—"}</p>
@@ -96,14 +96,14 @@ function TodayTab({ pending, resolve, goDecisions }: { pending: typeof allDecisi
       </div>
       <div className="px-5">
         <p className="mt-6 text-lg leading-snug">
-          <span className="font-semibold text-primary">{Math.min(3, pending.length)} things need you today.</span> Munshi handled 12 others.
+          <span className="font-semibold text-primary">{Math.min(3, pending.length)} things need you today.</span> Zenin handled 12 others.
         </p>
         <SectionTitle aside={<button onClick={goDecisions} className="text-sm text-primary">See all</button>}>Needs you</SectionTitle>
         <div className="space-y-3">
           {pending.slice(0, 3).map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} compact />)}
           {pending.length === 0 && <GoldCard><p className="text-muted-foreground">Nothing needs you right now.</p></GoldCard>}
         </div>
-        <SectionTitle>Munshi handled</SectionTitle>
+        <SectionTitle>Zenin handled</SectionTitle>
         <GoldCard className="p-0">
           <ul className="divide-y divide-border">
             {(open ? handled : handled.slice(0, 2)).map((h) => (
@@ -139,9 +139,9 @@ function DecisionsTab({ pending, resolve }: { pending: typeof allDecisions; reso
     <>
       <Banner src={images.petals} title="Decisions" subtitle={`${pending.length} waiting for you`} />
       <div className="space-y-4 px-5 pt-6">
-        <p className="text-sm text-muted-foreground">Munshi only brings you things that change the theme, raise a price or shift a time by more than 30 minutes.</p>
+        <p className="text-sm text-muted-foreground">Zenin only brings you things that change the theme, raise a price or shift a time by more than 30 minutes.</p>
         {pending.map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} />)}
-        {pending.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Munshi will call you if anything new comes up.</p></GoldCard>}
+        {pending.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Zenin will call you if anything new comes up.</p></GoldCard>}
       </div>
     </>
   );
@@ -225,7 +225,7 @@ function GuestsTab() {
   const fix = (id: string) => {
     if (id === "g1") setFixed(true);
     setGaps((g) => g.filter((x) => x.id !== id));
-    toast("Fix approved. Munshi is on it.");
+    toast("Fix approved. Zenin is on it.");
   };
   return (
     <>

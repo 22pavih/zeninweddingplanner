@@ -70,8 +70,8 @@ export const decisions: Decision[] = [
 export const handled = [
   "Rajbir moved chair delivery from 10:00 to 10:20. No clash, accepted.",
   "Anjali confirmed the Mehendi trial for 14:00 on 27 Nov.",
-  "Frame Story Studio asked for the shot list again. Munshi sent it by SMS.",
-  "Radha asked about parking. Munshi shared the venue gate map.",
+  "Frame Story Studio asked for the shot list again. Zenin sent it by SMS.",
+  "Radha asked about parking. Zenin shared the venue gate map.",
   "Pandit Ramesh Shastri confirmed the muhurat time. No change.",
   "Gopal's arrival moved to slot B1. Pickup updated.",
 ];
@@ -107,8 +107,8 @@ export const vendors: Vendor[] = [
       { label: "40 round tables, champagne runners", status: "Verified" },
     ],
     calls: [
-      { date: "22 Sept", lang: "Hindi", text: "Rajbir confirmed 200 chairs with gold covers. Munshi read the number back and sent an SMS." },
-      { date: "24 Sept", lang: "Hindi", text: "Asked to swap runners to red satin. Munshi said it needs the bride and held the request." },
+      { date: "22 Sept", lang: "Hindi", text: "Rajbir confirmed 200 chairs with gold covers. Zenin read the number back and sent an SMS." },
+      { date: "24 Sept", lang: "Hindi", text: "Asked to swap runners to red satin. Zenin said it needs the bride and held the request." },
       { date: "25 Sept", lang: "Hindi", text: "Moved chair delivery to 10:20. No clash with catering, accepted." },
     ],
     payment: "Advance paid. Final payment held until the day-of photo check.",
@@ -121,7 +121,7 @@ export const vendors: Vendor[] = [
       { label: "Jain menu, 20 plates", status: "Confirmed on call" },
     ],
     calls: [
-      { date: "18 Sept", lang: "Hindi", text: "Said a number that sounded like 350 or 315. Munshi asked again. Confirmed 350." },
+      { date: "18 Sept", lang: "Hindi", text: "Said a number that sounded like 350 or 315. Zenin asked again. Confirmed 350." },
       { date: "25 Sept", lang: "Hindi", text: "Asked for Rs 18 more per plate. Agreed to Rs 12 if confirmed today. Sent to the bride." },
     ],
     payment: "Advance paid. Final payment held until the day-of photo check.",
@@ -133,8 +133,8 @@ export const vendors: Vendor[] = [
       { label: "Mehendi trial, 27 Nov 14:00", status: "Confirmed on call" },
     ],
     calls: [
-      { date: "20 Sept", lang: "English", text: "Confirmed trial time. Munshi sent a calendar invite." },
-      { date: "23 Sept", lang: "Hindi", text: "Asked for lehenga colour. Munshi shared maroon and the jewellery photo." },
+      { date: "20 Sept", lang: "English", text: "Confirmed trial time. Zenin sent a calendar invite." },
+      { date: "23 Sept", lang: "Hindi", text: "Asked for lehenga colour. Zenin shared maroon and the jewellery photo." },
     ],
     payment: "Paid in full.",
   },
@@ -146,7 +146,7 @@ export const vendors: Vendor[] = [
     ],
     calls: [
       { date: "19 Sept", lang: "English", text: "Confirmed crew of three. No faces on social without approval." },
-      { date: "25 Sept", lang: "English", text: "Asked for shot list again. Munshi sent it by SMS." },
+      { date: "25 Sept", lang: "English", text: "Asked for shot list again. Zenin sent it by SMS." },
     ],
     payment: "Advance paid. Final payment held until the day-of photo check.",
   },
@@ -157,7 +157,7 @@ export const vendors: Vendor[] = [
       { label: "Sangeet shuttle, 17:00", status: "Promised" },
     ],
     calls: [
-      { date: "21 Sept", lang: "Hindi", text: "Confirmed 6 cars. Munshi read out every slot and sent the list." },
+      { date: "21 Sept", lang: "Hindi", text: "Confirmed 6 cars. Zenin read out every slot and sent the list." },
       { date: "25 Sept", lang: "Hindi", text: "Wants to move the Sangeet pickup by an hour. Sent to the bride." },
     ],
     payment: "Advance paid. Final payment held until the day-of photo check.",
@@ -169,7 +169,7 @@ export const vendors: Vendor[] = [
       { label: "Samagri list shared", status: "Confirmed on call" },
     ],
     calls: [
-      { date: "17 Sept", lang: "Hindi", text: "Confirmed muhurat. Munshi repeated the time twice." },
+      { date: "17 Sept", lang: "Hindi", text: "Confirmed muhurat. Zenin repeated the time twice." },
       { date: "24 Sept", lang: "Hindi", text: "Shared samagri list. Rohit will buy it on 26 Nov." },
     ],
     payment: "Dakshina to be given on the day.",
@@ -195,5 +195,5 @@ export const guests: Guest[] = [
 
 export const gaps = [
   { id: "g1", text: "Madhavan K has no room and no pickup.", fix: "Book a room at Lemon Tree Sohna and add him to the B2 pickup." },
-  { id: "g2", text: "Suresh uncle's phone was off twice. Munshi messaged Lakshmi instead.", fix: "Make Lakshmi his contact for pickup updates." },
+  { id: "g2", text: "Suresh uncle's phone was off twice. Zenin messaged Lakshmi instead.", fix: "Make Lakshmi his contact for pickup updates." },
 ];
