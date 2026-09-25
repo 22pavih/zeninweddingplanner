@@ -18,7 +18,7 @@ const chipStyles: Record<string, string> = {
 
 export function Chip({ label }: { label: string }) {
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${chipStyles[label] ?? chipStyles.Promised}`}>
+    <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${chipStyles[label] ?? chipStyles["Promised"]}`}>
       {label}
     </span>
   );
