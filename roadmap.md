@@ -6,6 +6,6 @@
 - [x] Assign the nearest available helper to dress or flower checks through a clearly simulated Delhivery flow.
 - [x] Show the helper's report and Zenin's verification or escalation result in Today and Vendors.
 - [x] Check the flow on mobile.
-- [ ] Split bride instructions and helper list into their own view.
-- [ ] Focus Today on pending/ongoing work and Delhivery assignments.
-- [ ] Verify the new navigation and shared helper flow on mobile.
+- [x] Split bride instructions and helper list into their own view.
+- [x] Focus Today on pending/ongoing work and Delhivery assignments.
+- [x] Verify the new navigation and shared helper flow on mobile.
