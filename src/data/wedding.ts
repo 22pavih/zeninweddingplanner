@@ -13,14 +13,15 @@ export const wedding = {
   themeRule: "Never red or maroon in decor. The lehenga may be maroon, but it is not part of the decor theme.",
 };
 
-export type HelperArea = "Sohna" | "Sector 29" | "Golf Course Road" | "Cyber City";
+export type HelperArea = "Sohna" | "Sector 14" | "Sector 29" | "Golf Course Road" | "Cyber City";
 export type Helper = { id: string; name: string; relation: string; area: HelperArea; available: boolean };
-export const helperAreas: HelperArea[] = ["Sohna", "Sector 29", "Golf Course Road", "Cyber City"];
+export const helperAreas: HelperArea[] = ["Sohna", "Sector 14", "Sector 29", "Golf Course Road", "Cyber City"];
 export const helpers: Helper[] = [
-  { id: "rohit", name: "Rohit Sharma", relation: "Brother", area: "Sohna", available: true },
+  { id: "rohit", name: "Rohit Sharma", relation: "Cousin", area: "Sohna", available: true },
   { id: "lakshmi", name: "Lakshmi", relation: "Aunt", area: "Sector 29", available: true },
   { id: "radha", name: "Radha", relation: "Cousin", area: "Golf Course Road", available: true },
   { id: "gopal", name: "Gopal", relation: "Uncle", area: "Cyber City", available: true },
+  { id: "monu", name: "Monu Sharma", relation: "Cousin", area: "Sector 14", available: true },
 ];
 export type CheckTask = { id: string; title: string; place: string; area: HelperArea; vendorId: string; brief: string };
 export const checkTasks: CheckTask[] = [
@@ -30,10 +31,11 @@ export const checkTasks: CheckTask[] = [
 ];
 // Approximate, illustrative distances for this preview, not live location or routing.
 const previewDistances: Record<HelperArea, Record<HelperArea, number>> = {
-  Sohna: { Sohna: 3, "Sector 29": 28, "Golf Course Road": 23, "Cyber City": 34 },
-  "Sector 29": { Sohna: 28, "Sector 29": 2, "Golf Course Road": 9, "Cyber City": 8 },
-  "Golf Course Road": { Sohna: 23, "Sector 29": 9, "Golf Course Road": 2, "Cyber City": 11 },
-  "Cyber City": { Sohna: 34, "Sector 29": 8, "Golf Course Road": 11, "Cyber City": 2 },
+  Sohna: { Sohna: 3, "Sector 14": 27, "Sector 29": 28, "Golf Course Road": 23, "Cyber City": 34 },
+  "Sector 14": { Sohna: 27, "Sector 14": 2, "Sector 29": 5, "Golf Course Road": 11, "Cyber City": 7 },
+  "Sector 29": { Sohna: 28, "Sector 14": 5, "Sector 29": 2, "Golf Course Road": 9, "Cyber City": 8 },
+  "Golf Course Road": { Sohna: 23, "Sector 14": 11, "Sector 29": 9, "Golf Course Road": 2, "Cyber City": 11 },
+  "Cyber City": { Sohna: 34, "Sector 14": 7, "Sector 29": 8, "Golf Course Road": 11, "Cyber City": 2 },
 };
 export const previewDistance = (from: HelperArea, to: HelperArea) => previewDistances[from][to];
 
