@@ -4,13 +4,14 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Activity, ArrowLeft, CalendarHeart, Camera, Check, ChevronDown, ChevronRight, ListChecks, Phone, Send, ShieldCheck, Store, Users } from "lucide-react";
+import { Activity, ArrowLeft, CalendarHeart, Check, ChevronDown, ChevronRight, ListChecks, Phone, Send, ShieldCheck, Store, Users } from "lucide-react";
 import {
   activity as initialActivity, decisions as allDecisions, gaps as allGaps, guests as initialGuests, handled as initialHandled,
-  images, today, vendors, wedding, type Decision, type Payment,
+  checkTasks, helpers as initialHelpers, images, previewDistance, today, vendors, wedding, type CheckTask, type Decision, type Helper, type HelperArea, type Payment,
 } from "@/data/wedding";
 import { Banner, Chip, GoldCard, SectionTitle } from "@/components/zenin/ui";
 import { DecisionCard } from "@/components/zenin/DecisionCard";
+import { OnGround, type CheckAssignment } from "@/components/zenin/OnGround";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/")({
 type Tab = "today" | "decisions" | "vendors" | "guests";
 type Decided = Decision & { ok: boolean };
 type Resolve = (id: string, ok: boolean) => void;
-type GroundReport = { observation: string; photoName?: string; status: "Verified" | "Decision needed" | "Needs review" };
+type GroundProps = { helpers: Helper[]; assignments: CheckAssignment[]; addHelper: (name: string, relation: string, area: HelperArea) => void; assign: (task: CheckTask) => void; submitReport: (task: CheckTask, observation: string, photoName?: string) => void; goDecisions: () => void };
 
 function App() {
   const [tab, setTab] = useState<Tab>("today");
@@ -40,7 +41,8 @@ function App() {
   const [handled, setHandled] = useState(initialHandled);
   const [activity, setActivity] = useState(initialActivity);
   const [payments, setPayments] = useState<Record<string, Payment>>(() => Object.fromEntries(vendors.map((v) => [v.id, v.payment])));
-  const [groundReport, setGroundReport] = useState<GroundReport | null>(null);
+  const [helpers, setHelpers] = useState<Helper[]>(initialHelpers);
+  const [assignments, setAssignments] = useState<CheckAssignment[]>([]);
 
   const log = (h?: string, a?: string) => {
     if (h) setHandled((x) => [h, ...x]);
@@ -56,32 +58,45 @@ function App() {
   };
   const addDecision = (d: Decision) => setPending((p) => [d, ...p]);
   const go = (t: Tab) => { setTab(t); window.scrollTo({ top: 0 }); };
-  const submitGroundReport = (observation: string, photoName?: string) => {
-    const conflicts = /red|maroon|orange/i.test(observation);
-    const matches = /ivory|blush|champagne/i.test(observation) && /drape|mandap|flower/i.test(observation);
+  const addHelper: GroundProps["addHelper"] = (name, relation, area) => { setHelpers((items) => [...items, { id: `helper-${Date.now()}`, name, relation, area, available: true }]); toast(`${name} added as a helper`); };
+  const assign: GroundProps["assign"] = (task) => {
+    const nearest = [...helpers].filter((helper) => helper.available).sort((a, b) => previewDistance(a.area, task.area) - previewDistance(b.area, task.area))[0];
+    if (!nearest) return;
+    setHelpers((items) => items.map((helper) => helper.id === nearest.id ? { ...helper, available: false } : helper));
+    setAssignments((items) => [{ taskId: task.id, helperId: nearest.id, distance: previewDistance(nearest.area, task.area), status: "Assigned" }, ...items]);
+    log(undefined, `Delhivery preview matched ${nearest.name} to ${task.title.toLowerCase()} · ~${previewDistance(nearest.area, task.area)} km`);
+    toast(`${nearest.name} assigned in preview`);
+  };
+  const submitReport: GroundProps["submitReport"] = (task, observation, photoName) => {
+    const helper = helpers.find((person) => person.id === assignments.find((item) => item.taskId === task.id)?.helperId);
+    if (!helper) return;
+    const conflicts = task.id === "dress" ? /not ready|missing|wrong size|damaged|red dress/i.test(observation) : /red|maroon|orange/i.test(observation);
+    const matches = task.id === "dress" ? /ready|fits|collected|maroon lehenga/i.test(observation) : /ivory|blush|champagne/i.test(observation) && /drape|mandap|flower/i.test(observation);
     const status = conflicts ? "Decision needed" : matches ? "Verified" : "Needs review";
-    setGroundReport({ observation, ...(photoName ? { photoName } : {}), status });
+    setAssignments((items) => items.map((item) => item.taskId === task.id ? { ...item, observation, ...(photoName ? { photoName } : {}), status } : item));
+    if (status !== "Needs review") setHelpers((items) => items.map((person) => person.id === helper.id ? { ...person, available: true } : person));
     if (conflicts) {
-      setPending((items) => items.some((item) => item.id === "ground-check") ? items : [{
-        id: "ground-check", vendorId: "tent", who: "Rohit Sharma", role: "On-ground check · Chaudhary Tent and Decor",
-        ask: `Rohit reported: “${observation}”`, why: "Changes the theme",
-        suggestion: "Gnani found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
+      setPending((items) => items.some((item) => item.id === `ground-${task.id}`) ? items : [{
+        id: `ground-${task.id}`, vendorId: task.vendorId, who: helper.name, role: `Delhivery helper check · ${task.title}`,
+        ask: `${helper.name} reported: “${observation}”`, why: task.id === "dress" ? "Dress needs attention" : "Changes the theme",
+        suggestion: task.id === "dress" ? "Gnani could not confirm the dress is ready. Check with the boutique before approving." : "Gnani found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
       }, ...items]);
-      log(undefined, "Gnani escalated Rohit's on-ground update to Decisions");
-      toast("Theme conflict sent to Decisions");
+      log(undefined, `Zenin escalated ${helper.name}'s ${task.title.toLowerCase()} update to Decisions`);
+      toast("Check conflict sent to Decisions");
     } else if (matches) {
-      log("Rohit's mandap update matches the approved decor palette. Marked verified in this preview.", "Gnani checked Rohit's on-ground update against the theme");
+      log(`${helper.name}'s ${task.title.toLowerCase()} update matched the requirements in preview.`, `Zenin verified ${helper.name}'s written update in preview`);
       toast("On-ground update verified");
     } else {
       toast("Update saved for review");
     }
   };
+  const ground: GroundProps = { helpers, assignments, addHelper, assign, submitReport, goDecisions: () => go("decisions") };
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} groundReport={groundReport} submitGroundReport={submitGroundReport} />}
-      {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} groundReport={groundReport} />}
-      {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
+      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} ground={ground} />}
+      {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} ground={ground} />}
+      {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} ground={ground} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
       {tab === "guests" && <GuestsTab log={log} />}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-gold/40 bg-card/95 backdrop-blur">
         <div className="mx-auto grid max-w-md grid-cols-4">
