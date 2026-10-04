@@ -12,6 +12,7 @@ import {
 import { Banner, Chip, GoldCard, SectionTitle } from "@/components/zenin/ui";
 import { FlowerErrand } from "@/components/zenin/FlowerErrand";
 import { DecisionCard } from "@/components/zenin/DecisionCard";
+import { Ledger, initialLedger, inr, ledgerTotals, type LedgerRow } from "@/components/zenin/Ledger";
 import { OnGround, type CheckAssignment } from "@/components/zenin/OnGround";
 
 export const Route = createFileRoute("/")({
@@ -44,6 +45,7 @@ function App() {
   const [payments, setPayments] = useState<Record<string, Payment>>(() => Object.fromEntries(vendors.map((v) => [v.id, v.payment])));
   const [helpers, setHelpers] = useState<Helper[]>(initialHelpers);
   const [assignments, setAssignments] = useState<CheckAssignment[]>([]);
+  const [ledger, setLedger] = useState<LedgerRow[]>(initialLedger);
 
   const log = (h?: string, a?: string) => {
     if (h) setHandled((x) => [h, ...x]);
@@ -96,7 +98,7 @@ function App() {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={priyaPending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} />}
+      {tab === "today" && <TodayTab pending={priyaPending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} ledger={ledger} addLedgerRow={(r) => setLedger((l) => [r, ...l])} />}
       <div className={tab === "give" ? "" : "hidden"} aria-hidden={tab !== "give"}>
         <GiveTab log={log} addDecision={addDecision} ground={ground} />
       </div>
@@ -205,11 +207,14 @@ function GiveTab({ log, addDecision, ground }: { log: (h?: string, a?: string) =
   </>;
 }
 
-function TodayTab({ pending, handled, activity, goDecisions, ground }: {
-  pending: Decision[]; handled: string[]; activity: string[]; goDecisions: () => void; ground: GroundProps;
+function TodayTab({ pending, handled, activity, goDecisions, ground, ledger, addLedgerRow }: {
+  pending: Decision[]; handled: string[]; activity: string[]; goDecisions: () => void; ground: GroundProps; ledger: LedgerRow[]; addLedgerRow: (r: LedgerRow) => void;
 }) {
   const days = useDaysLeft();
   const [open, setOpen] = useState(false);
+  const [ledgerOpen, setLedgerOpen] = useState(false);
+  if (ledgerOpen) return <Ledger rows={ledger} addRow={addLedgerRow} back={() => setLedgerOpen(false)} />;
+  const totals = ledgerTotals(ledger);
   return (
     <>
       <div className="relative h-80 overflow-hidden bg-maroon">
@@ -230,6 +235,16 @@ function TodayTab({ pending, handled, activity, goDecisions, ground }: {
         <p className="mt-6 text-lg leading-snug">
           <span className="font-semibold text-primary">{pending.length} {pending.length === 1 ? "thing needs" : "things need"} you today.</span> Zenin handled {handled.length} others.
         </p>
+        <button type="button" onClick={() => setLedgerOpen(true)} className="mt-4 block w-full text-left">
+          <GoldCard className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-serif text-lg font-semibold text-maroon">Wedding ledger</p>
+              <p className="text-sm text-muted-foreground">Paid through Pine Labs <span className="font-semibold text-foreground">{inr(totals.pine)}</span></p>
+              <p className="text-sm text-muted-foreground">Paid in cash <span className="font-semibold text-foreground">{inr(totals.cash)}</span></p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
+          </GoldCard>
+        </button>
         {pending.length > 0 && <Button variant="outline" className="mt-4 w-full justify-between" onClick={goDecisions}>Review {pending.length} {pending.length === 1 ? "decision" : "decisions"}<ChevronRight className="h-4 w-4" /></Button>}
         <SectionTitle>To do & in progress</SectionTitle>
         <div className="space-y-2">
