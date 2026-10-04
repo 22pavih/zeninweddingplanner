@@ -116,7 +116,7 @@ export type TaskStatus = "On track" | "At risk" | "Blocked" | "Done";
 export const today: { title: string; status: TaskStatus; note: string }[] = [
   { title: "Chair delivery to venue", status: "On track", note: "Arriving 19:00" },
   { title: "Catering headcount", status: "At risk", note: "Waiting on the extra 50 portions" },
-  { title: "Stage flowers top-up", status: "Done", note: "Bought, checked and paid. ₹4,500" },
+  { title: "Mandap flowers", status: "Blocked", note: "Needs your call on the flower photo" },
   { title: "Photographer shot list", status: "Done", note: "Sent to Frame Story" },
 ];
 
