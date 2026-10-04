@@ -55,6 +55,7 @@ export type Decision = {
   why: string;
   suggestion: string;
   photo?: boolean;
+  owner?: "Priya" | "Rakesh ji";
 };
 
 export const decisions: Decision[] = [
@@ -70,6 +71,7 @@ export const decisions: Decision[] = [
   {
     id: "d2",
     vendorId: "cater",
+    owner: "Rakesh ji",
     who: "Mukesh",
     role: "Shri Balaji Caterers",
     ask: "Requests an additional 50 meal portions.",
