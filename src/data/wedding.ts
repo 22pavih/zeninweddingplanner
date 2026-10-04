@@ -131,7 +131,7 @@ export const vendors: Vendor[] = [
       { label: "Ivory table runners", status: "Issue" },
     ],
     calls: [
-      { date: "22 Sept", lang: "Hindi", text: "Rajbir confirmed 200 chairs with gold covers. Zenin repeated the quantity back and received confirmation." },
+       { date: "22 Sept", lang: "Hindi", text: "Rajbir confirmed 200 chairs with gold covers. Gnani repeated the quantity back and received confirmation." },
       { date: "24 Sept", lang: "Hindi", text: "Rajbir asked to move setup from 19:00 to 20:00. Gnani recorded the request; the timing is not confirmed." },
       { date: "25 Sept", lang: "Hindi", text: "Rajbir asked to swap runners to red satin. Gnani checked the decor rule and sent an approval request to Priya.", decisionId: "d1" },
     ],
@@ -145,7 +145,7 @@ export const vendors: Vendor[] = [
       { label: "Jain menu, 20 plates", status: "Confirmed" },
     ],
     calls: [
-      { date: "18 Sept", lang: "Hindi", text: "Mukesh initially said a quantity that sounded like 350 or 315. Zenin asked him to repeat it. Mukesh confirmed 350." },
+       { date: "18 Sept", lang: "Hindi", text: "Mukesh initially said a quantity that sounded like 350 or 315. Gnani asked him to repeat it. Mukesh confirmed 350." },
       { date: "25 Sept", lang: "Hindi", text: "Mukesh requested 50 extra portions. Gnani flagged the price increase and sent an approval request to Priya.", decisionId: "d2" },
     ],
     payment: { ...held },
@@ -157,8 +157,8 @@ export const vendors: Vendor[] = [
       { label: "Mehendi trial, 27 Nov 14:00", status: "Confirmed" },
     ],
     calls: [
-      { date: "20 Sept", lang: "English", text: "Confirmed trial time. Zenin sent a calendar invite." },
-      { date: "23 Sept", lang: "Hindi", text: "Asked for lehenga colour. Zenin shared maroon and the jewellery photo." },
+       { date: "20 Sept", lang: "English", text: "Confirmed trial time. Gnani recorded the calendar details." },
+       { date: "23 Sept", lang: "Hindi", text: "Asked for lehenga colour. Gnani shared maroon and the jewellery photo." },
     ],
     payment: { advance: "Paid", delivery: "Verified", final: "Paid", reason: "Paid in full" },
   },
@@ -170,7 +170,7 @@ export const vendors: Vendor[] = [
     ],
     calls: [
       { date: "19 Sept", lang: "English", text: "Confirmed crew of three. No faces on social without approval." },
-      { date: "25 Sept", lang: "English", text: "Confirmed setup timing. Asked for shot list again; Zenin sent it by SMS." },
+       { date: "25 Sept", lang: "English", text: "Confirmed setup timing. Asked for shot list again; Gnani sent it by SMS." },
     ],
     payment: { ...held },
   },
@@ -182,8 +182,8 @@ export const vendors: Vendor[] = [
       { label: "Sangeet shuttle, 17:00", status: "Promised" },
     ],
     calls: [
-      { date: "21 Sept", lang: "Hindi", text: "Confirmed 6 cars. Zenin read out every slot and sent the list." },
-      { date: "26 Sept", lang: "Hindi", text: "Zenin followed up on the B2 pickup. Confirmed." },
+       { date: "21 Sept", lang: "Hindi", text: "Confirmed 6 cars. Gnani read out every slot and sent the list." },
+       { date: "26 Sept", lang: "Hindi", text: "Gnani followed up on the B2 pickup. Confirmed." },
     ],
     payment: { advance: "Paid", delivery: "Pending", final: "Held", reason: "Awaiting day-of verification" },
   },
@@ -194,7 +194,7 @@ export const vendors: Vendor[] = [
       { label: "Samagri list shared", status: "Confirmed" },
     ],
     calls: [
-      { date: "17 Sept", lang: "Hindi", text: "Confirmed muhurat. Zenin repeated the time twice." },
+       { date: "17 Sept", lang: "Hindi", text: "Confirmed muhurat. Gnani repeated the time twice." },
       { date: "24 Sept", lang: "Hindi", text: "Shared samagri list. Rohit will buy it on 26 Nov." },
     ],
     payment: { advance: "Pending", delivery: "Pending", final: "Pending", reason: "Dakshina to be given on the day" },

@@ -133,18 +133,18 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
     const chairs = /chair|decor|tent|rajbir/i.test(t);
     const result = needsBride
       ? "Vendor proposed a change. Sent to Decisions."
-      : chairs ? "Rajbir confirmed 200 chairs at 19:00" : "Vendor confirmed. Added to Zenin handled.";
+       : chairs ? "Preview: Rajbir confirmed 200 chairs at 19:00" : "Preview: vendor confirmed. Added to Gnani handled.";
     const upd = (patch: Partial<Instruction>) => setItems((x) => x.map((i) => (i.id === id ? { ...i, ...patch } : i)));
-    setItems((x) => [{ id, text: t, status: "Zenin is handling this" }, ...x]);
+     setItems((x) => [{ id, text: t, status: "Gnani is handling this" }, ...x]);
     setText("");
-    timers.current.push(setTimeout(() => { upd({ status: "Vendor contacted" }); log(undefined, chairs ? "Zenin called Rajbir" : "Zenin called the vendor"); }, 1500));
+     timers.current.push(setTimeout(() => { upd({ status: "Vendor contact simulated" }); log(undefined, chairs ? "Gnani simulated a call to Rajbir" : "Gnani simulated vendor contact"); }, 1500));
     timers.current.push(setTimeout(() => {
       if (needsBride) {
         upd({ status: "Decision needed", result });
-        addDecision({ id: `n${id}`, who: chairs ? "Rajbir" : "Vendor", role: "From your instruction", ask: t, why: "Needs your authority", suggestion: "Zenin checked this against the wedding rules. Review before approving." });
+         addDecision({ id: `n${id}`, vendorId: chairs ? "tent" : undefined, who: chairs ? "Rajbir" : "Vendor", role: "From your instruction · preview", ask: t, why: "Needs your authority", suggestion: "Gnani checked this against the wedding rules. Review before approving." });
       } else {
         upd({ status: "Done", result });
-        log(result, "Zenin closed your instruction");
+         log(result, "Gnani closed your preview instruction");
       }
     }, 3500));
   };
@@ -152,7 +152,7 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   return (
     <GoldCard>
       <p className="font-serif text-lg font-semibold text-maroon">Tell Zenin</p>
-      <p className="text-xs text-muted-foreground">Type an instruction. Voice coming soon.</p>
+       <p className="text-xs text-muted-foreground">Type an instruction to preview the Gnani workflow. No vendor is contacted.</p>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask the decorator if they can deliver the chairs by 19:00" />
         <Button type="submit" size="icon" aria-label="Send instruction"><Send className="h-4 w-4" /></Button>
