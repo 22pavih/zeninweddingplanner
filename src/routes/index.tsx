@@ -60,7 +60,7 @@ function App() {
     const conflicts = /red|maroon|orange/i.test(observation);
     const matches = /ivory|blush|champagne/i.test(observation) && /drape|mandap|flower/i.test(observation);
     const status = conflicts ? "Decision needed" : matches ? "Verified" : "Needs review";
-    setGroundReport({ observation, photoName, status });
+    setGroundReport({ observation, ...(photoName ? { photoName } : {}), status });
     if (conflicts) {
       setPending((items) => items.some((item) => item.id === "ground-check") ? items : [{
         id: "ground-check", vendorId: "tent", who: "Rohit Sharma", role: "On-ground check · Chaudhary Tent and Decor",
@@ -339,6 +339,7 @@ function VendorsTab({ payments, pending, decided, groundReport, submitGroundRepo
 
 function VendorDetail({ v, payment, pending, decided, groundReport, submitGroundReport, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; verify: () => void; back: () => void }) {
   const canVerify = payment.final === "Held";
+  const deliveryReady = v.id !== "tent" || groundReport?.status === "Verified";
   const vendorRequests = pending.filter((d) => d.vendorId === v.id);
   const vendorDecisions = decided.filter((d) => d.vendorId === v.id);
   return (
@@ -390,10 +391,11 @@ function VendorDetail({ v, payment, pending, decided, groundReport, submitGround
           <p className="text-sm text-muted-foreground">{payment.reason}</p>
            <p className="mt-2 text-xs font-medium">{payment.final === "Approved" ? "Approved in Pine Labs preview after verification · no payment sent" : payment.final === "Paid" ? "Shown as paid in Pine Labs preview" : "Held in Pine Labs preview until delivery is verified"}</p>
            {canVerify && (
-             <Button size="sm" className="mt-3" onClick={() => { verify(); toast("Pine Labs preview: approval recorded. No payment sent."); }}>
+             <Button size="sm" className="mt-3" disabled={!deliveryReady} onClick={() => { verify(); toast("Pine Labs preview: approval recorded. No payment sent."); }}>
                <ShieldCheck className="h-4 w-4" /> Mark verified & approve in preview
             </Button>
           )}
+           {canVerify && !deliveryReady && <p className="mt-2 text-xs text-muted-foreground">Waiting for Rohit's on-ground update to be verified.</p>}
            <p className="mt-2 text-[11px] text-muted-foreground">Pine Labs is not connected. This only updates the screen.</p>
         </div>
       </GoldCard>
