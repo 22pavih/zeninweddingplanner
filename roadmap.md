@@ -1,0 +1,4 @@
+- [ ] Show Gnani handling and escalation in vendor discussions and decisions.
+- [ ] Add a visible on-ground verification flow with helper updates and decision escalation.
+- [ ] Label payment verification and approval as Pine Labs preview states.
+- [ ] Verify the flows in the running app.
