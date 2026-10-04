@@ -141,7 +141,7 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
     timers.current.push(setTimeout(() => {
       if (needsBride) {
         upd({ status: "Decision needed", result });
-         addDecision({ id: `n${id}`, vendorId: chairs ? "tent" : undefined, who: chairs ? "Rajbir" : "Vendor", role: "From your instruction · preview", ask: t, why: "Needs your authority", suggestion: "Gnani checked this against the wedding rules. Review before approving." });
+         addDecision({ id: `n${id}`, ...(chairs ? { vendorId: "tent" } : {}), who: chairs ? "Rajbir" : "Vendor", role: "From your instruction · preview", ask: t, why: "Needs your authority", suggestion: "Gnani checked this against the wedding rules. Review before approving." });
       } else {
         upd({ status: "Done", result });
          log(result, "Gnani closed your preview instruction");
