@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Activity, ArrowLeft, CalendarHeart, Check, ChevronDown, ChevronRight, ListChecks, Phone, Send, ShieldCheck, Store, Users } from "lucide-react";
+import { Activity, ArrowLeft, CalendarHeart, Check, ChevronDown, ChevronRight, ListChecks, MessageCircle, Phone, Send, ShieldCheck, Store, Users } from "lucide-react";
 import {
   activity as initialActivity, decisions as allDecisions, gaps as allGaps, guests as initialGuests, handled as initialHandled,
   checkTasks, helpers as initialHelpers, images, previewDistance, today, vendors, wedding, type CheckTask, type Decision, type Helper, type HelperArea, type Payment,
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
   component: App,
 });
 
-type Tab = "today" | "decisions" | "vendors" | "guests";
+type Tab = "today" | "give" | "decisions" | "vendors" | "guests";
 type Decided = Decision & { ok: boolean };
 type Resolve = (id: string, ok: boolean) => void;
 type GroundProps = { helpers: Helper[]; assignments: CheckAssignment[]; addHelper: (name: string, relation: string, area: HelperArea) => void; assign: (task: CheckTask) => void; submitReport: (task: CheckTask, observation: string, photoName?: string) => void; goDecisions: () => void };
@@ -94,25 +94,29 @@ function App() {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} ground={ground} />}
+      {tab === "today" && <TodayTab pending={pending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} />}
+      <div className={tab === "give" ? "" : "hidden"} aria-hidden={tab !== "give"}>
+        <GiveTab log={log} addDecision={addDecision} ground={ground} />
+      </div>
       {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} ground={ground} />}
       {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} ground={ground} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
       {tab === "guests" && <GuestsTab log={log} />}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-gold/40 bg-card/95 backdrop-blur">
-        <div className="mx-auto grid max-w-md grid-cols-4">
+        <div className="mx-auto grid max-w-md grid-cols-5">
           {([
             ["today", "Today", CalendarHeart],
+            ["give", "Ask", MessageCircle],
             ["decisions", "Decisions", ListChecks],
             ["vendors", "Vendors", Store],
             ["guests", "Guests", Users],
           ] as const).map(([id, label, Icon]) => (
-            <button key={id} onClick={() => go(id)} className={`relative flex flex-col items-center gap-1 py-3 text-xs ${tab === id ? "text-primary" : "text-muted-foreground"}`}>
+            <Button key={id} variant="ghost" onClick={() => go(id)} aria-current={tab === id ? "page" : undefined} className={`relative h-16 min-w-0 flex-col gap-1 rounded-none px-0 py-2 text-[11px] ${tab === id ? "text-primary" : "text-muted-foreground"}`}>
               <Icon className="h-5 w-5" />
               {label}
               {id === "decisions" && pending.length > 0 && (
-                <span className="absolute right-5 top-2 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{pending.length}</span>
+                <span className="absolute right-2 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{pending.length}</span>
               )}
-            </button>
+            </Button>
           ))}
         </div>
       </nav>
@@ -189,8 +193,18 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   );
 }
 
-function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions, ground }: {
-  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void; ground: GroundProps;
+function GiveTab({ log, addDecision, ground }: { log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; ground: GroundProps }) {
+  return <>
+    <Banner src={images.marigold} title="Give Zenin a task" subtitle="Your instructions and your people" />
+    <div className="space-y-5 px-5 pt-6">
+      <AskZenin log={log} addDecision={addDecision} />
+      <OnGround {...ground} mode="helpers" />
+    </div>
+  </>;
+}
+
+function TodayTab({ pending, handled, activity, goDecisions, ground }: {
+  pending: Decision[]; handled: string[]; activity: string[]; goDecisions: () => void; ground: GroundProps;
 }) {
   const days = useDaysLeft();
   const [open, setOpen] = useState(false);
@@ -214,29 +228,10 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
         <p className="mt-6 text-lg leading-snug">
           <span className="font-semibold text-primary">{pending.length} {pending.length === 1 ? "thing needs" : "things need"} you today.</span> Zenin handled {handled.length} others.
         </p>
-        <div className="mt-4"><AskZenin log={log} addDecision={addDecision} /></div>
-        <SectionTitle aside={<button onClick={goDecisions} className="text-sm text-primary">See all</button>}>Needs you</SectionTitle>
-        <div className="space-y-3">
-          {pending.slice(0, 3).map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} compact />)}
-          {pending.length === 0 && <GoldCard><p className="text-muted-foreground">Nothing needs you right now.</p></GoldCard>}
-        </div>
-        <SectionTitle>Zenin handled</SectionTitle>
-        <GoldCard className="p-0">
-          <ul className="divide-y divide-border">
-            {(open ? handled : handled.slice(0, 2)).map((h, i) => (
-              <li key={h + i} className="flex gap-3 p-4 text-sm leading-relaxed">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{h}
-              </li>
-            ))}
-          </ul>
-          <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-center gap-1 border-t border-border p-3 text-sm text-primary">
-            {open ? "Show less" : `Show ${handled.length - 2} more`}
-            <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
-          </button>
-        </GoldCard>
-        <SectionTitle>Happening today</SectionTitle>
+        {pending.length > 0 && <Button variant="outline" className="mt-4 w-full justify-between" onClick={goDecisions}>Review {pending.length} {pending.length === 1 ? "decision" : "decisions"}<ChevronRight className="h-4 w-4" /></Button>}
+        <SectionTitle>To do & in progress</SectionTitle>
         <div className="space-y-2">
-          {today.map((t) => (
+          {today.filter((t) => t.status !== "Done").map((t) => (
             <GoldCard key={t.title} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="font-medium">{t.title}</p>
@@ -246,14 +241,17 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
             </GoldCard>
           ))}
         </div>
-        <SectionTitle>On-ground verification</SectionTitle>
-        <OnGround {...ground} />
-        <SectionTitle>Zenin activity</SectionTitle>
-        <div className="space-y-2 border-l-2 border-gold/50 pl-4">
-          {activity.slice(0, 6).map((a, i) => (
-            <p key={a + i} className="flex items-center gap-2 text-sm"><Activity className="h-3.5 w-3.5 shrink-0 text-gold" />{a}</p>
-          ))}
-        </div>
+        <SectionTitle>Delhivery allocation</SectionTitle>
+        <OnGround {...ground} mode="checks" />
+        <SectionTitle>Done & handled</SectionTitle>
+        <GoldCard className="p-0">
+          <ul className="divide-y divide-border">
+            {today.filter((t) => t.status === "Done").map((t) => <li key={t.title} className="flex gap-3 p-4 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" /><span><strong>{t.title}</strong><span className="block text-muted-foreground">{t.note}</span></span></li>)}
+            {(open ? handled : handled.slice(0, 2)).map((h, i) => <li key={h + i} className="flex gap-3 p-4 text-sm leading-relaxed"><Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />{h}</li>)}
+          </ul>
+          {handled.length > 2 && <Button variant="ghost" onClick={() => setOpen(!open)} className="h-auto w-full gap-1 rounded-none border-t border-border p-3 text-sm text-primary">{open ? "Show less" : `Show ${handled.length - 2} more`}<ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} /></Button>}
+        </GoldCard>
+        <details className="mb-6 mt-5 text-sm text-muted-foreground"><summary className="cursor-pointer">Zenin activity</summary><div className="mt-3 space-y-2 border-l-2 border-gold/50 pl-4">{activity.slice(0, 6).map((a, i) => <p key={a + i} className="flex items-center gap-2"><Activity className="h-3.5 w-3.5 shrink-0 text-gold" />{a}</p>)}</div></details>
       </div>
     </>
   );
