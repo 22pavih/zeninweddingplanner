@@ -105,7 +105,7 @@ function App() {
         <div className="mx-auto grid max-w-md grid-cols-5">
           {([
             ["today", "Today", CalendarHeart],
-            ["give", "Give", MessageCircle],
+            ["give", "Ask", MessageCircle],
             ["decisions", "Decisions", ListChecks],
             ["vendors", "Vendors", Store],
             ["guests", "Guests", Users],
