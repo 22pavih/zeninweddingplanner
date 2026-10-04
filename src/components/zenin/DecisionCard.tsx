@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { images, wedding, type Decision } from "@/data/wedding";
+import { Check, X } from "lucide-react";
+import { images, photoChecks, wedding, type Decision } from "@/data/wedding";
 import { GoldCard } from "./ui";
 
 export function DecisionCard({ d, onResolve, compact }: { d: Decision; onResolve: (id: string, ok: boolean) => void; compact?: boolean }) {
@@ -15,15 +16,19 @@ export function DecisionCard({ d, onResolve, compact }: { d: Decision; onResolve
       <p className="mt-3 text-[15px] leading-relaxed">{d.ask}</p>
       {d.photo && (
         <div className="mt-3 flex gap-3">
-          <img src={images.marigold} alt="Marigold flowers from the stall" className="h-24 w-24 shrink-0 rounded-xl border border-gold/50 object-cover" />
+          <img src={images.marigold} alt="Flowers from the stall" className="h-28 w-24 shrink-0 rounded-xl border border-gold/50 object-cover" />
           <div className="flex flex-col justify-center gap-1.5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Theme</p>
-            {wedding.theme.map((t) => (
-              <div key={t.name} className="flex items-center gap-2 text-sm">
-                <span className="h-5 w-5 rounded-full border border-border" style={{ backgroundColor: t.hex }} />
-                {t.name}
-              </div>
-            ))}
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Theme check</p>
+            {photoChecks.map((t) => {
+              const hex = wedding.theme.find((x) => x.name === t.name)?.hex ?? "#F28C28";
+              return (
+                <div key={t.name} className="flex items-center gap-2 text-sm">
+                  <span className="h-4 w-4 rounded-full border border-border" style={{ backgroundColor: hex }} />
+                  {t.name}
+                  {t.ok ? <Check className="h-3.5 w-3.5 text-success" /> : <X className="h-3.5 w-3.5 text-primary" />}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
