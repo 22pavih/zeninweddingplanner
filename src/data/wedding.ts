@@ -21,6 +21,7 @@ export const helpers: Helper[] = [
   { id: "lakshmi", name: "Lakshmi", relation: "Aunt", area: "Sector 29", available: true },
   { id: "radha", name: "Radha", relation: "Cousin", area: "Golf Course Road", available: true },
   { id: "gopal", name: "Gopal", relation: "Uncle", area: "Cyber City", available: true },
+  { id: "monu", name: "Monu Sharma", relation: "Cousin", area: "Sector 29", available: true },
 ];
 export type CheckTask = { id: string; title: string; place: string; area: HelperArea; vendorId: string; brief: string };
 export const checkTasks: CheckTask[] = [
