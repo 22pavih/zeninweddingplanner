@@ -360,7 +360,7 @@ function VendorDetail({ v, payment, pending, decided, ground, goDecisions, verif
         ))}
          {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Gnani informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
       </div>
-       {(v.id === "tent" || v.id === "mua") && <><SectionTitle>On-ground verification</SectionTitle><OnGround {...ground} vendorId={v.id} /></>}
+       {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><OnGround {...ground} vendorId={v.id} /></>}
        <SectionTitle>Payment verification · Pine Labs</SectionTitle>
       <GoldCard className="p-0">
         <ul className="divide-y divide-border">

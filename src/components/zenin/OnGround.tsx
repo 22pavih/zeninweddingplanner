@@ -39,7 +39,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
     <div className="space-y-3">
       {!vendorId && <GoldCard>
         <p className="font-semibold text-maroon">Priya's helpers</p>
-        <p className="mt-1 text-xs text-muted-foreground">Relatives added by Priya · areas entered manually for this preview</p>
+        <p className="mt-1 text-xs text-muted-foreground">Sample relatives on Priya's helper list · areas entered manually for this preview</p>
         <ul className="mt-3 divide-y divide-border">
           {helpers.map((item) => <li key={item.id} className="flex items-center justify-between gap-3 py-2 text-sm">
             <span className="flex min-w-0 items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-gold" /><span className="min-w-0"><strong>{item.name}</strong> · {item.relation}<span className="block text-xs text-muted-foreground">{item.area}</span></span></span>
@@ -73,7 +73,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
           </form>
         </div>}
       </GoldCard>}
-      {!vendorId && assignments.length > 0 && <GoldCard><p className="font-semibold text-maroon">Check results</p><ul className="mt-2 divide-y divide-border">{assignments.map((item) => { const task = checkTasks.find((t) => t.id === item.taskId); const person = helpers.find((h) => h.id === item.helperId); return <li key={item.taskId} className="flex items-center justify-between gap-2 py-2 text-sm"><span className="min-w-0"><strong>{task?.title}</strong><span className="block text-xs text-muted-foreground">{person?.name} · {item.observation ?? "Awaiting update"}</span></span><Chip label={item.status} /></li>; })}</ul></GoldCard>}
+      {assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).length > 0 && <GoldCard><p className="font-semibold text-maroon">Check results</p><ul className="mt-2 divide-y divide-border">{assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).map((item) => { const task = checkTasks.find((t) => t.id === item.taskId); const person = helpers.find((h) => h.id === item.helperId); return <li key={item.taskId} className="flex items-center justify-between gap-2 py-2 text-sm"><span className="min-w-0"><strong>{task?.title}</strong><span className="block text-xs text-muted-foreground">{person?.name} · {item.observation ?? "Awaiting update"}</span></span><Chip label={item.status} /></li>; })}</ul></GoldCard>}
     </div>
   );
 }

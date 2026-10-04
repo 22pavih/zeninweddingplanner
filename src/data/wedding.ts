@@ -26,7 +26,7 @@ export type CheckTask = { id: string; title: string; place: string; area: Helper
 export const checkTasks: CheckTask[] = [
   { id: "mandap", title: "Check mandap drapes", place: "Green Meadows Farm", area: "Sohna", vendorId: "tent", brief: "Ivory, blush pink or champagne gold only. No red or maroon decor." },
   { id: "flowers", title: "Check mandap flowers", place: "Flower stall near venue", area: "Sohna", vendorId: "tent", brief: "Check flowers against the ivory, blush and champagne palette; flag orange, red or maroon." },
-  { id: "dress", title: "Check bridal dress", place: "Bridal boutique", area: "Sector 29", vendorId: "mua", brief: "Confirm Priya's maroon lehenga is ready; maroon is allowed for the dress, not decor." },
+  { id: "dress", title: "Check bridal dress", place: "Bridal boutique", area: "Sector 29", vendorId: "dress", brief: "Confirm Priya's maroon lehenga is ready; maroon is allowed for the dress, not decor." },
 ];
 // Approximate, illustrative distances for this preview, not live location or routing.
 const previewDistances: Record<HelperArea, Record<HelperArea, number>> = {
