@@ -308,10 +308,13 @@ function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: De
   );
 }
 
-function VendorsTab({ payments, setPayment }: { payments: Record<string, Payment>; setPayment: (id: string, p: Payment) => void }) {
+function VendorsTab({ payments, pending, decided, groundReport, submitGroundReport, goDecisions, setPayment }: { payments: Record<string, Payment>; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; setPayment: (id: string, p: Payment) => void }) {
   const [selId, setSelId] = useState<string | null>(null);
   const sel = vendors.find((v) => v.id === selId);
-  if (sel) return <VendorDetail v={sel} payment={payments[sel.id]!} verify={() => setPayment(sel.id, { ...payments[sel.id]!, delivery: "Verified", final: "Approved", reason: "Day-of check passed. Ready to release." })} back={() => setSelId(null)} />;
+  if (sel) {
+    const payment = payments[sel.id] ?? sel.payment;
+    return <VendorDetail v={sel} payment={payment} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={goDecisions} verify={() => setPayment(sel.id, { ...payment, delivery: "Verified", final: "Approved", reason: "Verification marked complete in this preview. No payment has been sent." })} back={() => setSelId(null)} />;
+  }
   return (
     <>
       <Banner src={images.jewellery} title="Vendors" subtitle={`${vendors.length} vendors · Zenin talks to them so you don't have to`} />
@@ -334,8 +337,10 @@ function VendorsTab({ payments, setPayment }: { payments: Record<string, Payment
   );
 }
 
-function VendorDetail({ v, payment, verify, back }: { v: (typeof vendors)[number]; payment: Payment; verify: () => void; back: () => void }) {
+function VendorDetail({ v, payment, pending, decided, groundReport, submitGroundReport, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; verify: () => void; back: () => void }) {
   const canVerify = payment.final === "Held";
+  const vendorRequests = pending.filter((d) => d.vendorId === v.id);
+  const vendorDecisions = decided.filter((d) => d.vendorId === v.id);
   return (
     <div className="px-5 pt-5">
       <button onClick={back} className="flex items-center gap-1 text-sm text-primary"><ArrowLeft className="h-4 w-4" /> Vendors</button>
@@ -362,16 +367,19 @@ function VendorDetail({ v, payment, verify, back }: { v: (typeof vendors)[number
           ))}
         </ul>
       </GoldCard>
-      <SectionTitle>What Zenin heard</SectionTitle>
+       <SectionTitle>Vendor discussion · Gnani</SectionTitle>
+       {vendorRequests.length > 0 && <div className="mb-4 space-y-2">{vendorRequests.map((d) => <GoldCard key={d.id}><p className="text-xs font-semibold text-primary">Gnani sent a request for approval</p><p className="mt-1 text-sm">{d.who}: {d.ask}</p><p className="mt-1 text-xs text-muted-foreground">{d.why} · waiting for Priya</p><Button variant="link" className="mt-1 h-auto p-0" onClick={goDecisions}>Review request <ChevronRight className="h-4 w-4" /></Button></GoldCard>)}</div>}
       <div className="space-y-3 border-l-2 border-gold/50 pl-4">
         {v.calls.map((c) => (
           <div key={c.date + c.text}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gold">{c.date} · {c.lang}</p>
+             <p className="text-xs font-semibold uppercase tracking-wide text-gold">{c.date} · {c.lang} · Gnani {c.decisionId ? "requested approval" : "handled this"}</p>
             <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
           </div>
         ))}
+         {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Gnani informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
       </div>
-      <SectionTitle>Payment</SectionTitle>
+       {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} /></>}
+       <SectionTitle>Payment verification · Pine Labs</SectionTitle>
       <GoldCard className="p-0">
         <ul className="divide-y divide-border">
           {([["Advance payment", payment.advance], ["Delivery verification", payment.delivery], ["Final payment", payment.final]] as const).map(([l, s]) => (
@@ -380,12 +388,13 @@ function VendorDetail({ v, payment, verify, back }: { v: (typeof vendors)[number
         </ul>
         <div className="border-t border-border p-4">
           <p className="text-sm text-muted-foreground">{payment.reason}</p>
-          {canVerify && (
-            <Button size="sm" className="mt-3" onClick={() => { verify(); toast("Verified. Final payment approved."); }}>
-              <ShieldCheck className="h-4 w-4" /> Run day-of verification
+           <p className="mt-2 text-xs font-medium">{payment.final === "Approved" ? "Approved in Pine Labs preview after verification · no payment sent" : payment.final === "Paid" ? "Shown as paid in Pine Labs preview" : "Held in Pine Labs preview until delivery is verified"}</p>
+           {canVerify && (
+             <Button size="sm" className="mt-3" onClick={() => { verify(); toast("Pine Labs preview: approval recorded. No payment sent."); }}>
+               <ShieldCheck className="h-4 w-4" /> Mark verified & approve in preview
             </Button>
           )}
-          <p className="mt-2 text-[11px] text-muted-foreground">Payment status via Pine Labs (preview)</p>
+           <p className="mt-2 text-[11px] text-muted-foreground">Pine Labs is not connected. This only updates the screen.</p>
         </div>
       </GoldCard>
     </div>
