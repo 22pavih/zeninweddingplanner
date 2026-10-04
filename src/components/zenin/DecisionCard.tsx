@@ -8,6 +8,7 @@ export function DecisionCard({ d, onResolve, compact }: { d: Decision; onResolve
     <GoldCard>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
+          <p className="mb-1 text-xs font-semibold text-primary">Gnani sent a request for approval</p>
           <p className="font-semibold">{d.who}</p>
           <p className="truncate text-xs text-muted-foreground">{d.role}</p>
         </div>
@@ -34,7 +35,7 @@ export function DecisionCard({ d, onResolve, compact }: { d: Decision; onResolve
       )}
       {!compact && (
         <div className="mt-3 rounded-xl bg-secondary p-3 text-sm">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gold">Zenin suggests</p>
+           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gold">Gnani recommends</p>
           <p className="text-secondary-foreground">{d.suggestion}</p>
         </div>
       )}

@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep wedding flow examples and UI-only verification in in-memory state; no vendor calls, image analysis, or Pine Labs payment execution is available without integrations, so label simulations honestly.
