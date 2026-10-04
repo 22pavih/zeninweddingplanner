@@ -16,9 +16,9 @@ import { OnGround, type CheckAssignment } from "@/components/zenin/OnGround";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Zenin — Priya's Wedding Dashboard" },
+      { title: "Zenin · Priya's Wedding Dashboard" },
       { name: "description", content: "Zenin handles the wedding routine and brings Priya only the decisions that need her." },
-      { property: "og:title", content: "Zenin — Priya's Wedding Dashboard" },
+      { property: "og:title", content: "Zenin · Priya's Wedding Dashboard" },
       { property: "og:description", content: "Zenin handles the wedding routine and brings Priya only the decisions that need her." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -53,7 +53,7 @@ function App() {
     if (!d) return;
     setPending((p) => p.filter((x) => x.id !== id));
     setDecided((x) => [{ ...d, ok }, ...x]);
-    log(`${ok ? "Approved" : "Declined"}: ${d.who}'s request. Gnani informed them.`, `Gnani informed ${d.who} of your decision`);
+    log(`${ok ? "Approved" : "Declined"}: ${d.who}'s request. Zenin informed them on a Gnani call.`, `Zenin informed ${d.who} of your decision`);
     toast("Decision recorded.");
   };
   const addDecision = (d: Decision) => setPending((p) => [d, ...p]);
@@ -79,7 +79,7 @@ function App() {
       setPending((items) => items.some((item) => item.id === `ground-${task.id}`) ? items : [{
         id: `ground-${task.id}`, vendorId: task.vendorId, who: helper.name, role: `Delhivery helper check · ${task.title}`,
         ask: `${helper.name} reported: “${observation}”`, why: task.id === "dress" ? "Dress needs attention" : "Changes the theme",
-        suggestion: task.id === "dress" ? "Gnani could not confirm the dress is ready. Check with the boutique before approving." : "Gnani found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
+        suggestion: task.id === "dress" ? "Zenin could not confirm the dress is ready. Check with the boutique before approving." : "Zenin found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
       }, ...items]);
       log(undefined, `Zenin escalated ${helper.name}'s ${task.title.toLowerCase()} update to Decisions`);
       toast("Check conflict sent to Decisions");
@@ -152,18 +152,18 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
     const chairs = /chair|decor|tent|rajbir/i.test(t);
     const result = needsBride
       ? "Vendor proposed a change. Sent to Decisions."
-       : chairs ? "Preview: Rajbir confirmed 200 chairs at 19:00" : "Preview: vendor confirmed. Added to Gnani handled.";
+       : chairs ? "Preview: Rajbir confirmed 200 chairs at 19:00" : "Preview: vendor confirmed. Added to Zenin handled.";
     const upd = (patch: Partial<Instruction>) => setItems((x) => x.map((i) => (i.id === id ? { ...i, ...patch } : i)));
-     setItems((x) => [{ id, text: t, status: "Gnani is handling this" }, ...x]);
+     setItems((x) => [{ id, text: t, status: "Zenin is handling this" }, ...x]);
     setText("");
-     timers.current.push(setTimeout(() => { upd({ status: "Vendor contact simulated" }); log(undefined, chairs ? "Gnani simulated a call to Rajbir" : "Gnani simulated vendor contact"); }, 1500));
+     timers.current.push(setTimeout(() => { upd({ status: "Vendor contact simulated" }); log(undefined, chairs ? "Zenin simulated a Gnani call to Rajbir" : "Zenin simulated vendor contact"); }, 1500));
     timers.current.push(setTimeout(() => {
       if (needsBride) {
         upd({ status: "Decision needed", result });
-         addDecision({ id: `n${id}`, ...(chairs ? { vendorId: "tent" } : {}), who: chairs ? "Rajbir" : "Vendor", role: "From your instruction · preview", ask: t, why: "Needs your authority", suggestion: "Gnani checked this against the wedding rules. Review before approving." });
+         addDecision({ id: `n${id}`, ...(chairs ? { vendorId: "tent" } : {}), who: chairs ? "Rajbir" : "Vendor", role: "From your instruction · preview", ask: t, why: "Needs your authority", suggestion: "Zenin checked this against the wedding rules. Review before approving." });
       } else {
         upd({ status: "Done", result });
-         log(result, "Gnani closed your preview instruction");
+         log(result, "Zenin closed your preview instruction");
       }
     }, 3500));
   };
@@ -171,7 +171,7 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   return (
     <GoldCard>
       <p className="font-serif text-lg font-semibold text-maroon">Tell Zenin</p>
-       <p className="text-xs text-muted-foreground">Type an instruction to preview the Gnani workflow. No vendor is contacted.</p>
+       <p className="text-xs text-muted-foreground">Type an instruction to preview how Zenin works. No vendor is contacted.</p>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask the decorator if they can deliver the chairs by 19:00" />
         <Button type="submit" size="icon" aria-label="Send instruction"><Send className="h-4 w-4" /></Button>
@@ -347,16 +347,16 @@ function VendorDetail({ v, payment, pending, decided, ground, goDecisions, verif
           ))}
         </ul>
       </GoldCard>
-       <SectionTitle>Vendor discussion · Gnani</SectionTitle>
-       {vendorRequests.length > 0 && <div className="mb-4 space-y-2">{vendorRequests.map((d) => <GoldCard key={d.id}><p className="text-xs font-semibold text-primary">Gnani sent a request for approval</p><p className="mt-1 text-sm">{d.who}: {d.ask}</p><p className="mt-1 text-xs text-muted-foreground">{d.why} · waiting for Priya</p><Button variant="link" className="mt-1 h-auto p-0" onClick={goDecisions}>Review request <ChevronRight className="h-4 w-4" /></Button></GoldCard>)}</div>}
+       <SectionTitle>Vendor calls · through Gnani</SectionTitle>
+       {vendorRequests.length > 0 && <div className="mb-4 space-y-2">{vendorRequests.map((d) => <GoldCard key={d.id}><p className="text-xs font-semibold text-primary">Zenin needs your decision</p><p className="mt-1 text-sm">{d.who}: {d.ask}</p><p className="mt-1 text-xs text-muted-foreground">{d.why} · waiting for Priya</p><Button variant="link" className="mt-1 h-auto p-0" onClick={goDecisions}>Review request <ChevronRight className="h-4 w-4" /></Button></GoldCard>)}</div>}
       <div className="space-y-3 border-l-2 border-gold/50 pl-4">
         {v.calls.map((c) => (
           <div key={c.date + c.text}>
-             <p className="text-xs font-semibold uppercase tracking-wide text-gold">{c.date} · {c.lang} · Gnani {c.decisionId ? "requested approval" : "handled this"}</p>
+             <p className="text-xs font-semibold uppercase tracking-wide text-gold">{c.date} · {c.lang} · Zenin {c.decisionId ? "requested approval" : "handled this"}</p>
             <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
           </div>
         ))}
-         {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Gnani informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
+         {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Zenin informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
       </div>
        {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><OnGround {...ground} vendorId={v.id} /></>}
        <SectionTitle>Payment verification · Pine Labs</SectionTitle>
