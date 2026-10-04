@@ -10,6 +10,7 @@ import {
   checkTasks, helpers as initialHelpers, images, previewDistance, today, vendors, wedding, type CheckTask, type Decision, type Helper, type HelperArea, type Payment,
 } from "@/data/wedding";
 import { Banner, Chip, GoldCard, SectionTitle } from "@/components/zenin/ui";
+import { FlowerErrand } from "@/components/zenin/FlowerErrand";
 import { DecisionCard } from "@/components/zenin/DecisionCard";
 import { OnGround, type CheckAssignment } from "@/components/zenin/OnGround";
 
@@ -241,6 +242,7 @@ function TodayTab({ pending, handled, activity, goDecisions, ground }: {
             </GoldCard>
           ))}
         </div>
+        <div className="mt-3"><FlowerErrand /></div>
         <SectionTitle>Delhivery allocation</SectionTitle>
         <OnGround {...ground} mode="checks" />
         <SectionTitle>Done & handled</SectionTitle>

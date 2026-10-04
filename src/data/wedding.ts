@@ -76,16 +76,6 @@ export const decisions: Decision[] = [
     why: "Price goes up",
     suggestion: "Review the updated quantity and price before approving.",
   },
-  {
-    id: "d4",
-    vendorId: "tent",
-    who: "Runner verification",
-    role: "Rohit Sharma · flower stall",
-    ask: "Rohit sent a photo of the flowers for the mandap entrance.",
-    why: "Changes the theme",
-    suggestion: "These flowers are outside the approved palette. Zenin suggests the ivory roses from the next stall at the same price.",
-    photo: true,
-  },
 ];
 
 export const photoChecks = [
@@ -96,6 +86,7 @@ export const photoChecks = [
 ];
 
 export const handled = [
+  "Stage flowers ran short. Monu bought pale pink roses and white rajnigandha from Amit Flowers Decoration for ₹4,500. Zenin rejected a first photo of red roses.",
   "Rajbir confirmed 200 chairs with gold covers.",
   "Mukesh confirmed 350 meal portions after Zenin asked him to repeat the quantity.",
   "Yadav Travels confirmed the B2 pickup.",
