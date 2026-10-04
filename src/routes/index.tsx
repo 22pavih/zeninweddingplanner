@@ -31,6 +31,7 @@ export const Route = createFileRoute("/")({
 type Tab = "today" | "decisions" | "vendors" | "guests";
 type Decided = Decision & { ok: boolean };
 type Resolve = (id: string, ok: boolean) => void;
+type GroundReport = { observation: string; photoName?: string; status: "Verified" | "Decision needed" | "Needs review" };
 
 function App() {
   const [tab, setTab] = useState<Tab>("today");
@@ -39,6 +40,7 @@ function App() {
   const [handled, setHandled] = useState(initialHandled);
   const [activity, setActivity] = useState(initialActivity);
   const [payments, setPayments] = useState<Record<string, Payment>>(() => Object.fromEntries(vendors.map((v) => [v.id, v.payment])));
+  const [groundReport, setGroundReport] = useState<GroundReport | null>(null);
 
   const log = (h?: string, a?: string) => {
     if (h) setHandled((x) => [h, ...x]);
@@ -49,17 +51,37 @@ function App() {
     if (!d) return;
     setPending((p) => p.filter((x) => x.id !== id));
     setDecided((x) => [{ ...d, ok }, ...x]);
-    log(`${ok ? "Approved" : "Declined"}: ${d.who}'s request. Zenin told them.`, `Zenin informed ${d.who} of your decision`);
+    log(`${ok ? "Approved" : "Declined"}: ${d.who}'s request. Gnani informed them.`, `Gnani informed ${d.who} of your decision`);
     toast("Decision recorded.");
   };
   const addDecision = (d: Decision) => setPending((p) => [d, ...p]);
   const go = (t: Tab) => { setTab(t); window.scrollTo({ top: 0 }); };
+  const submitGroundReport = (observation: string, photoName?: string) => {
+    const conflicts = /red|maroon|orange/i.test(observation);
+    const matches = /ivory|blush|champagne/i.test(observation) && /drape|mandap|flower/i.test(observation);
+    const status = conflicts ? "Decision needed" : matches ? "Verified" : "Needs review";
+    setGroundReport({ observation, ...(photoName ? { photoName } : {}), status });
+    if (conflicts) {
+      setPending((items) => items.some((item) => item.id === "ground-check") ? items : [{
+        id: "ground-check", vendorId: "tent", who: "Rohit Sharma", role: "On-ground check · Chaudhary Tent and Decor",
+        ask: `Rohit reported: “${observation}”`, why: "Changes the theme",
+        suggestion: "Gnani found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
+      }, ...items]);
+      log(undefined, "Gnani escalated Rohit's on-ground update to Decisions");
+      toast("Theme conflict sent to Decisions");
+    } else if (matches) {
+      log("Rohit's mandap update matches the approved decor palette. Marked verified in this preview.", "Gnani checked Rohit's on-ground update against the theme");
+      toast("On-ground update verified");
+    } else {
+      toast("Update saved for review");
+    }
+  };
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} />}
-      {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} log={log} />}
-      {tab === "vendors" && <VendorsTab payments={payments} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Zenin verified a delivery photo"); }} />}
+      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} groundReport={groundReport} submitGroundReport={submitGroundReport} />}
+      {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} groundReport={groundReport} />}
+      {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
       {tab === "guests" && <GuestsTab log={log} />}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-gold/40 bg-card/95 backdrop-blur">
         <div className="mx-auto grid max-w-md grid-cols-4">
@@ -111,18 +133,18 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
     const chairs = /chair|decor|tent|rajbir/i.test(t);
     const result = needsBride
       ? "Vendor proposed a change. Sent to Decisions."
-      : chairs ? "Rajbir confirmed 200 chairs at 19:00" : "Vendor confirmed. Added to Zenin handled.";
+       : chairs ? "Preview: Rajbir confirmed 200 chairs at 19:00" : "Preview: vendor confirmed. Added to Gnani handled.";
     const upd = (patch: Partial<Instruction>) => setItems((x) => x.map((i) => (i.id === id ? { ...i, ...patch } : i)));
-    setItems((x) => [{ id, text: t, status: "Zenin is handling this" }, ...x]);
+     setItems((x) => [{ id, text: t, status: "Gnani is handling this" }, ...x]);
     setText("");
-    timers.current.push(setTimeout(() => { upd({ status: "Vendor contacted" }); log(undefined, chairs ? "Zenin called Rajbir" : "Zenin called the vendor"); }, 1500));
+     timers.current.push(setTimeout(() => { upd({ status: "Vendor contact simulated" }); log(undefined, chairs ? "Gnani simulated a call to Rajbir" : "Gnani simulated vendor contact"); }, 1500));
     timers.current.push(setTimeout(() => {
       if (needsBride) {
         upd({ status: "Decision needed", result });
-        addDecision({ id: `n${id}`, who: chairs ? "Rajbir" : "Vendor", role: "From your instruction", ask: t, why: "Needs your authority", suggestion: "Zenin checked this against the wedding rules. Review before approving." });
+         addDecision({ id: `n${id}`, ...(chairs ? { vendorId: "tent" } : {}), who: chairs ? "Rajbir" : "Vendor", role: "From your instruction · preview", ask: t, why: "Needs your authority", suggestion: "Gnani checked this against the wedding rules. Review before approving." });
       } else {
         upd({ status: "Done", result });
-        log(result, "Zenin closed your instruction");
+         log(result, "Gnani closed your preview instruction");
       }
     }, 3500));
   };
@@ -130,7 +152,7 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   return (
     <GoldCard>
       <p className="font-serif text-lg font-semibold text-maroon">Tell Zenin</p>
-      <p className="text-xs text-muted-foreground">Type an instruction. Voice coming soon.</p>
+       <p className="text-xs text-muted-foreground">Type an instruction to preview the Gnani workflow. No vendor is contacted.</p>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask the decorator if they can deliver the chairs by 19:00" />
         <Button type="submit" size="icon" aria-label="Send instruction"><Send className="h-4 w-4" /></Button>
@@ -152,8 +174,8 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   );
 }
 
-function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions }: {
-  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void;
+function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions, groundReport, submitGroundReport }: {
+  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void;
 }) {
   const days = useDaysLeft();
   const [open, setOpen] = useState(false);
@@ -209,6 +231,8 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
             </GoldCard>
           ))}
         </div>
+        <SectionTitle>On-ground verification</SectionTitle>
+        <GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} />
         <SectionTitle>Zenin activity</SectionTitle>
         <div className="space-y-2 border-l-2 border-gold/50 pl-4">
           {activity.slice(0, 6).map((a, i) => (
@@ -220,39 +244,41 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
   );
 }
 
-function RunnerCheck({ log }: { log: (h?: string, a?: string) => void }) {
-  const [stage, setStage] = useState<"Waiting for photo" | "Photo received" | "Verified">("Waiting for photo");
-  const receive = () => {
-    setStage("Photo received");
-    setTimeout(() => {
-      setStage("Verified");
-      log("Rohit's photo of the mandap drapes matches the theme. Marked verified.", "Zenin verified a delivery photo");
-      toast("Drapes match the theme. Verified.");
-    }, 1500);
-  };
+function GroundCheck({ report, onSubmit, goDecisions }: { report: GroundReport | null; onSubmit: (text: string, photoName?: string) => void; goDecisions: () => void }) {
+  const [observation, setObservation] = useState("");
+  const [photoName, setPhotoName] = useState<string | undefined>();
   return (
     <GoldCard>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold">On-ground check</p>
-          <p className="mt-1 font-semibold">Verify mandap drapes</p>
-          <p className="text-xs text-muted-foreground">Assigned to {wedding.deputy}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gold">Assigned to {wedding.deputy}</p>
+          <p className="mt-1 font-semibold">Check mandap drapes at the venue</p>
+          <p className="text-xs text-muted-foreground">Rohit visits · sends a photo or text update · Gnani checks the decor rule</p>
         </div>
-        <Chip label={stage} />
+        <Chip label={report?.status ?? "Waiting for update"} />
       </div>
-      {stage === "Waiting for photo" ? (
-        <Button variant="outline" size="sm" className="mt-3 border-gold/60" onClick={receive}><Camera className="h-4 w-4" /> Simulate Rohit's photo</Button>
-      ) : (
-        <div className="mt-3 flex items-center gap-3">
-          <img src={images.petals} alt="Mandap drapes photo from Rohit" className="h-16 w-16 rounded-xl border border-gold/50 object-cover" />
-          <p className="text-sm text-muted-foreground">{stage === "Verified" ? "Ivory and blush only. Clearly within the theme, so Zenin marked it verified without asking you." : "Zenin is comparing it with the theme…"}</p>
+      {report && (
+        <div className="mt-3 border-l-2 border-gold pl-3 text-sm">
+          <p className="font-medium">Rohit's update: {report.observation}</p>
+          {report.photoName && <p className="text-xs text-muted-foreground"><Camera className="mr-1 inline h-3 w-3" />{report.photoName} attached · photo not analysed</p>}
+          <p className="mt-1 text-muted-foreground">{report.status === "Verified" ? "Gnani matched the written update to ivory, blush or champagne decor. Verified in preview." : report.status === "Decision needed" ? "Gnani found a theme conflict and sent it to Priya for approval." : "The update is unclear. Gnani cannot verify it yet; ask Rohit for details."}</p>
+          {report.status === "Decision needed" && <Button variant="link" className="h-auto p-0" onClick={goDecisions}>View decision <ChevronRight className="h-4 w-4" /></Button>}
         </div>
       )}
+      <form className="mt-4 space-y-2" onSubmit={(e) => { e.preventDefault(); if (!observation.trim()) return; onSubmit(observation.trim(), photoName); setObservation(""); setPhotoName(undefined); }}>
+        <label htmlFor="ground-observation" className="text-xs font-semibold text-muted-foreground">Rohit's on-site update (preview)</label>
+        <Input id="ground-observation" value={observation} onChange={(e) => setObservation(e.target.value)} placeholder="e.g. Ivory mandap drapes installed" required />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-primary"><Camera className="h-4 w-4" />{photoName ?? "Attach photo (optional)"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhotoName(e.target.files?.[0]?.name)} /></label>
+          <Button type="submit" size="sm">Submit update</Button>
+        </div>
+        <p className="text-xs text-muted-foreground">This preview checks the written update only; attached photos are not analysed or sent.</p>
+      </form>
     </GoldCard>
   );
 }
 
-function DecisionsTab({ pending, decided, resolve, log }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; log: (h?: string, a?: string) => void }) {
+function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; groundReport: GroundReport | null }) {
   return (
     <>
       <Banner src={images.petals} title="Decisions" subtitle={`${pending.length} waiting for you`} />
@@ -260,8 +286,8 @@ function DecisionsTab({ pending, decided, resolve, log }: { pending: Decision[];
         <p className="text-sm text-muted-foreground">Zenin only brings you things that change the theme, raise a price or shift a time by more than 30 minutes. Rule: {wedding.themeRule}</p>
         {pending.map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} />)}
         {pending.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Zenin will call you if anything new comes up.</p></GoldCard>}
-        <SectionTitle>Runner checks</SectionTitle>
-        <RunnerCheck log={log} />
+        <SectionTitle>On-ground verification</SectionTitle>
+        <GoldCard><p className="text-sm">Rohit Sharma · Mandap drapes</p><div className="mt-2"><Chip label={groundReport?.status ?? "Waiting for update"} /></div><p className="mt-2 text-xs text-muted-foreground">{groundReport ? `Rohit reported: ${groundReport.observation}` : "Rohit has not sent an on-site update yet."}</p></GoldCard>
         {decided.length > 0 && (
           <>
             <SectionTitle>Decided</SectionTitle>
@@ -282,10 +308,13 @@ function DecisionsTab({ pending, decided, resolve, log }: { pending: Decision[];
   );
 }
 
-function VendorsTab({ payments, setPayment }: { payments: Record<string, Payment>; setPayment: (id: string, p: Payment) => void }) {
+function VendorsTab({ payments, pending, decided, groundReport, submitGroundReport, goDecisions, setPayment }: { payments: Record<string, Payment>; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; setPayment: (id: string, p: Payment) => void }) {
   const [selId, setSelId] = useState<string | null>(null);
   const sel = vendors.find((v) => v.id === selId);
-  if (sel) return <VendorDetail v={sel} payment={payments[sel.id]!} verify={() => setPayment(sel.id, { ...payments[sel.id]!, delivery: "Verified", final: "Approved", reason: "Day-of check passed. Ready to release." })} back={() => setSelId(null)} />;
+  if (sel) {
+    const payment = payments[sel.id] ?? sel.payment;
+    return <VendorDetail v={sel} payment={payment} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={goDecisions} verify={() => setPayment(sel.id, { ...payment, delivery: "Verified", final: "Approved", reason: "Verification marked complete in this preview. No payment has been sent." })} back={() => setSelId(null)} />;
+  }
   return (
     <>
       <Banner src={images.jewellery} title="Vendors" subtitle={`${vendors.length} vendors · Zenin talks to them so you don't have to`} />
@@ -308,8 +337,11 @@ function VendorsTab({ payments, setPayment }: { payments: Record<string, Payment
   );
 }
 
-function VendorDetail({ v, payment, verify, back }: { v: (typeof vendors)[number]; payment: Payment; verify: () => void; back: () => void }) {
+function VendorDetail({ v, payment, pending, decided, groundReport, submitGroundReport, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; verify: () => void; back: () => void }) {
   const canVerify = payment.final === "Held";
+  const deliveryReady = v.id !== "tent" || groundReport?.status === "Verified";
+  const vendorRequests = pending.filter((d) => d.vendorId === v.id);
+  const vendorDecisions = decided.filter((d) => d.vendorId === v.id);
   return (
     <div className="px-5 pt-5">
       <button onClick={back} className="flex items-center gap-1 text-sm text-primary"><ArrowLeft className="h-4 w-4" /> Vendors</button>
@@ -336,16 +368,19 @@ function VendorDetail({ v, payment, verify, back }: { v: (typeof vendors)[number
           ))}
         </ul>
       </GoldCard>
-      <SectionTitle>What Zenin heard</SectionTitle>
+       <SectionTitle>Vendor discussion · Gnani</SectionTitle>
+       {vendorRequests.length > 0 && <div className="mb-4 space-y-2">{vendorRequests.map((d) => <GoldCard key={d.id}><p className="text-xs font-semibold text-primary">Gnani sent a request for approval</p><p className="mt-1 text-sm">{d.who}: {d.ask}</p><p className="mt-1 text-xs text-muted-foreground">{d.why} · waiting for Priya</p><Button variant="link" className="mt-1 h-auto p-0" onClick={goDecisions}>Review request <ChevronRight className="h-4 w-4" /></Button></GoldCard>)}</div>}
       <div className="space-y-3 border-l-2 border-gold/50 pl-4">
         {v.calls.map((c) => (
           <div key={c.date + c.text}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gold">{c.date} · {c.lang}</p>
+             <p className="text-xs font-semibold uppercase tracking-wide text-gold">{c.date} · {c.lang} · Gnani {c.decisionId ? "requested approval" : "handled this"}</p>
             <p className="mt-1 text-sm leading-relaxed">{c.text}</p>
           </div>
         ))}
+         {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Gnani informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
       </div>
-      <SectionTitle>Payment</SectionTitle>
+       {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} /></>}
+       <SectionTitle>Payment verification · Pine Labs</SectionTitle>
       <GoldCard className="p-0">
         <ul className="divide-y divide-border">
           {([["Advance payment", payment.advance], ["Delivery verification", payment.delivery], ["Final payment", payment.final]] as const).map(([l, s]) => (
@@ -354,12 +389,14 @@ function VendorDetail({ v, payment, verify, back }: { v: (typeof vendors)[number
         </ul>
         <div className="border-t border-border p-4">
           <p className="text-sm text-muted-foreground">{payment.reason}</p>
-          {canVerify && (
-            <Button size="sm" className="mt-3" onClick={() => { verify(); toast("Verified. Final payment approved."); }}>
-              <ShieldCheck className="h-4 w-4" /> Run day-of verification
+           <p className="mt-2 text-xs font-medium">{payment.final === "Approved" ? "Approved in Pine Labs preview after verification · no payment sent" : payment.final === "Paid" ? "Shown as paid in Pine Labs preview" : "Held in Pine Labs preview until delivery is verified"}</p>
+           {canVerify && (
+             <Button size="sm" className="mt-3" disabled={!deliveryReady} onClick={() => { verify(); toast("Pine Labs preview: approval recorded. No payment sent."); }}>
+               <ShieldCheck className="h-4 w-4" /> Mark verified & approve in preview
             </Button>
           )}
-          <p className="mt-2 text-[11px] text-muted-foreground">Payment status via Pine Labs (preview)</p>
+           {canVerify && !deliveryReady && <p className="mt-2 text-xs text-muted-foreground">Waiting for Rohit's on-ground update to be verified.</p>}
+           <p className="mt-2 text-[11px] text-muted-foreground">Pine Labs is not connected. This only updates the screen.</p>
         </div>
       </GoldCard>
     </div>
