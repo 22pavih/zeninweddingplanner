@@ -189,8 +189,8 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   );
 }
 
-function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions, groundReport, submitGroundReport }: {
-  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void;
+function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions, ground }: {
+  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void; ground: GroundProps;
 }) {
   const days = useDaysLeft();
   const [open, setOpen] = useState(false);
@@ -247,7 +247,7 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
           ))}
         </div>
         <SectionTitle>On-ground verification</SectionTitle>
-        <GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} />
+        <OnGround {...ground} />
         <SectionTitle>Zenin activity</SectionTitle>
         <div className="space-y-2 border-l-2 border-gold/50 pl-4">
           {activity.slice(0, 6).map((a, i) => (
@@ -259,41 +259,7 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
   );
 }
 
-function GroundCheck({ report, onSubmit, goDecisions }: { report: GroundReport | null; onSubmit: (text: string, photoName?: string) => void; goDecisions: () => void }) {
-  const [observation, setObservation] = useState("");
-  const [photoName, setPhotoName] = useState<string | undefined>();
-  return (
-    <GoldCard>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold">Assigned to {wedding.deputy}</p>
-          <p className="mt-1 font-semibold">Check mandap drapes at the venue</p>
-          <p className="text-xs text-muted-foreground">Rohit visits · sends a photo or text update · Gnani checks the decor rule</p>
-        </div>
-        <Chip label={report?.status ?? "Waiting for update"} />
-      </div>
-      {report && (
-        <div className="mt-3 border-l-2 border-gold pl-3 text-sm">
-          <p className="font-medium">Rohit's update: {report.observation}</p>
-          {report.photoName && <p className="text-xs text-muted-foreground"><Camera className="mr-1 inline h-3 w-3" />{report.photoName} attached · photo not analysed</p>}
-          <p className="mt-1 text-muted-foreground">{report.status === "Verified" ? "Gnani matched the written update to ivory, blush or champagne decor. Verified in preview." : report.status === "Decision needed" ? "Gnani found a theme conflict and sent it to Priya for approval." : "The update is unclear. Gnani cannot verify it yet; ask Rohit for details."}</p>
-          {report.status === "Decision needed" && <Button variant="link" className="h-auto p-0" onClick={goDecisions}>View decision <ChevronRight className="h-4 w-4" /></Button>}
-        </div>
-      )}
-      <form className="mt-4 space-y-2" onSubmit={(e) => { e.preventDefault(); if (!observation.trim()) return; onSubmit(observation.trim(), photoName); setObservation(""); setPhotoName(undefined); }}>
-        <label htmlFor="ground-observation" className="text-xs font-semibold text-muted-foreground">Rohit's on-site update (preview)</label>
-        <Input id="ground-observation" value={observation} onChange={(e) => setObservation(e.target.value)} placeholder="e.g. Ivory mandap drapes installed" required />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-primary"><Camera className="h-4 w-4" />{photoName ?? "Attach photo (optional)"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhotoName(e.target.files?.[0]?.name)} /></label>
-          <Button type="submit" size="sm">Submit update</Button>
-        </div>
-        <p className="text-xs text-muted-foreground">This preview checks the written update only; attached photos are not analysed or sent.</p>
-      </form>
-    </GoldCard>
-  );
-}
-
-function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; groundReport: GroundReport | null }) {
+function DecisionsTab({ pending, decided, resolve, ground }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; ground: GroundProps }) {
   return (
     <>
       <Banner src={images.petals} title="Decisions" subtitle={`${pending.length} waiting for you`} />
@@ -302,7 +268,7 @@ function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: De
         {pending.map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} />)}
         {pending.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Zenin will call you if anything new comes up.</p></GoldCard>}
         <SectionTitle>On-ground verification</SectionTitle>
-        <GoldCard><p className="text-sm">Rohit Sharma · Mandap drapes</p><div className="mt-2"><Chip label={groundReport?.status ?? "Waiting for update"} /></div><p className="mt-2 text-xs text-muted-foreground">{groundReport ? `Rohit reported: ${groundReport.observation}` : "Rohit has not sent an on-site update yet."}</p></GoldCard>
+        <GoldCard className="p-0"><ul className="divide-y divide-border">{checkTasks.map((task) => { const report = ground.assignments.find((item) => item.taskId === task.id); const helper = ground.helpers.find((item) => item.id === report?.helperId); return <li key={task.id} className="flex items-center justify-between gap-3 p-4 text-sm"><div><p className="font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{helper?.name ?? "Not assigned"} · {report?.observation ?? "Awaiting on-site update"}</p></div><Chip label={report?.status ?? "Pending"} /></li>; })}</ul></GoldCard>
         {decided.length > 0 && (
           <>
             <SectionTitle>Decided</SectionTitle>
@@ -323,12 +289,12 @@ function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: De
   );
 }
 
-function VendorsTab({ payments, pending, decided, groundReport, submitGroundReport, goDecisions, setPayment }: { payments: Record<string, Payment>; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; setPayment: (id: string, p: Payment) => void }) {
+function VendorsTab({ payments, pending, decided, ground, goDecisions, setPayment }: { payments: Record<string, Payment>; pending: Decision[]; decided: Decided[]; ground: GroundProps; goDecisions: () => void; setPayment: (id: string, p: Payment) => void }) {
   const [selId, setSelId] = useState<string | null>(null);
   const sel = vendors.find((v) => v.id === selId);
   if (sel) {
     const payment = payments[sel.id] ?? sel.payment;
-    return <VendorDetail v={sel} payment={payment} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={goDecisions} verify={() => setPayment(sel.id, { ...payment, delivery: "Verified", final: "Approved", reason: "Verification marked complete in this preview. No payment has been sent." })} back={() => setSelId(null)} />;
+    return <VendorDetail v={sel} payment={payment} pending={pending} decided={decided} ground={ground} goDecisions={goDecisions} verify={() => setPayment(sel.id, { ...payment, delivery: "Verified", final: "Approved", reason: "Verification marked complete in this preview. No payment has been sent." })} back={() => setSelId(null)} />;
   }
   return (
     <>
@@ -352,9 +318,9 @@ function VendorsTab({ payments, pending, decided, groundReport, submitGroundRepo
   );
 }
 
-function VendorDetail({ v, payment, pending, decided, groundReport, submitGroundReport, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; verify: () => void; back: () => void }) {
+function VendorDetail({ v, payment, pending, decided, ground, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; ground: GroundProps; goDecisions: () => void; verify: () => void; back: () => void }) {
   const canVerify = payment.final === "Held";
-  const deliveryReady = v.id !== "tent" || groundReport?.status === "Verified";
+  const deliveryReady = v.id !== "tent" || ground.assignments.find((item) => item.taskId === "mandap")?.status === "Verified";
   const vendorRequests = pending.filter((d) => d.vendorId === v.id);
   const vendorDecisions = decided.filter((d) => d.vendorId === v.id);
   return (
@@ -394,7 +360,7 @@ function VendorDetail({ v, payment, pending, decided, groundReport, submitGround
         ))}
          {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Gnani informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
       </div>
-       {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} /></>}
+       {(v.id === "tent" || v.id === "mua") && <><SectionTitle>On-ground verification</SectionTitle><OnGround {...ground} vendorId={v.id} /></>}
        <SectionTitle>Payment verification · Pine Labs</SectionTitle>
       <GoldCard className="p-0">
         <ul className="divide-y divide-border">
@@ -410,7 +376,7 @@ function VendorDetail({ v, payment, pending, decided, groundReport, submitGround
                <ShieldCheck className="h-4 w-4" /> Mark verified & approve in preview
             </Button>
           )}
-           {canVerify && !deliveryReady && <p className="mt-2 text-xs text-muted-foreground">Waiting for Rohit's on-ground update to be verified.</p>}
+           {canVerify && !deliveryReady && <p className="mt-2 text-xs text-muted-foreground">Waiting for the mandap check to be verified.</p>}
            <p className="mt-2 text-[11px] text-muted-foreground">Pine Labs is not connected. This only updates the screen.</p>
         </div>
       </GoldCard>
