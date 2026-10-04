@@ -92,10 +92,11 @@ function App() {
     }
   };
   const ground: GroundProps = { helpers, assignments, addHelper, assign, submitReport, goDecisions: () => go("decisions") };
+  const priyaPending = pending.filter((d) => (d.owner ?? "Priya") === "Priya");
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={pending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} />}
+      {tab === "today" && <TodayTab pending={priyaPending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} />}
       <div className={tab === "give" ? "" : "hidden"} aria-hidden={tab !== "give"}>
         <GiveTab log={log} addDecision={addDecision} ground={ground} />
       </div>
@@ -114,8 +115,8 @@ function App() {
             <Button key={id} variant="ghost" onClick={() => go(id)} aria-current={tab === id ? "page" : undefined} className={`relative h-16 min-w-0 flex-col gap-1 rounded-none px-0 py-2 text-[11px] ${tab === id ? "text-primary" : "text-muted-foreground"}`}>
               <Icon className="h-5 w-5" />
               {label}
-              {id === "decisions" && pending.length > 0 && (
-                <span className="absolute right-2 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{pending.length}</span>
+              {id === "decisions" && priyaPending.length > 0 && (
+                <span className="absolute right-2 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{priyaPending.length}</span>
               )}
             </Button>
           ))}
@@ -260,13 +261,22 @@ function TodayTab({ pending, handled, activity, goDecisions, ground }: {
 }
 
 function DecisionsTab({ pending, decided, resolve, ground }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; ground: GroundProps }) {
+  const [view, setView] = useState<"Priya" | "Rakesh ji">("Priya");
+  const shown = pending.filter((d) => (d.owner ?? "Priya") === view);
+  const rakeshCount = pending.filter((d) => d.owner === "Rakesh ji").length;
   return (
     <>
       <Banner src={images.petals} title="Decisions" subtitle={`${pending.length} waiting for you`} />
       <div className="space-y-4 px-5 pt-6">
+        <div className="flex gap-2">
+          {(["Priya", "Rakesh ji"] as const).map((o) => (
+            <Button key={o} variant={view === o ? "default" : "outline"} size="sm" className="flex-1" onClick={() => setView(o)}>{o}</Button>
+          ))}
+        </div>
         <p className="text-sm text-muted-foreground">Zenin only brings you things that change the theme, raise a price or shift a time by more than 30 minutes. Rule: {wedding.themeRule}</p>
-        {pending.map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} />)}
-        {pending.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Zenin will call you if anything new comes up.</p></GoldCard>}
+        {shown.map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} />)}
+        {shown.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Zenin will call you if anything new comes up.</p></GoldCard>}
+        {view === "Priya" && rakeshCount > 0 && <p className="text-sm text-muted-foreground">{rakeshCount} money {rakeshCount === 1 ? "decision" : "decisions"} {rakeshCount === 1 ? "is" : "are"} with Papa.</p>}
         <SectionTitle>On-ground verification</SectionTitle>
         <GoldCard className="p-0"><ul className="divide-y divide-border">{checkTasks.map((task) => { const report = ground.assignments.find((item) => item.taskId === task.id); const helper = ground.helpers.find((item) => item.id === report?.helperId); return <li key={task.id} className="flex items-center justify-between gap-3 p-4 text-sm"><div><p className="font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{helper?.name ?? "Not assigned"} · {report?.observation ?? "Awaiting on-site update"}</p></div><Chip label={report?.status ?? "Pending"} /></li>; })}</ul></GoldCard>
         {decided.length > 0 && (
