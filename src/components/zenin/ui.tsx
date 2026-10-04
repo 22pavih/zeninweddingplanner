@@ -6,6 +6,7 @@ const chipStyles: Record<string, string> = {
   Verified: "bg-success/10 text-success border-success/30",
   Paid: "bg-success/10 text-success border-success/30",
   Assigned: "bg-success/10 text-success border-success/30",
+  Available: "bg-success/10 text-success border-success/30",
   "At risk": "bg-warning/10 text-warning border-warning/40",
   Delivering: "bg-warning/10 text-warning border-warning/40",
   Pending: "bg-warning/10 text-warning border-warning/40",

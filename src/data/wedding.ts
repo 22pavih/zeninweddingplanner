@@ -13,6 +13,30 @@ export const wedding = {
   themeRule: "Never red or maroon in decor. The lehenga may be maroon, but it is not part of the decor theme.",
 };
 
+export type HelperArea = "Sohna" | "Sector 29" | "Golf Course Road" | "Cyber City";
+export type Helper = { id: string; name: string; relation: string; area: HelperArea; available: boolean };
+export const helperAreas: HelperArea[] = ["Sohna", "Sector 29", "Golf Course Road", "Cyber City"];
+export const helpers: Helper[] = [
+  { id: "rohit", name: "Rohit Sharma", relation: "Brother", area: "Sohna", available: true },
+  { id: "lakshmi", name: "Lakshmi", relation: "Aunt", area: "Sector 29", available: true },
+  { id: "radha", name: "Radha", relation: "Cousin", area: "Golf Course Road", available: true },
+  { id: "gopal", name: "Gopal", relation: "Uncle", area: "Cyber City", available: true },
+];
+export type CheckTask = { id: string; title: string; place: string; area: HelperArea; vendorId: string; brief: string };
+export const checkTasks: CheckTask[] = [
+  { id: "mandap", title: "Check mandap drapes", place: "Green Meadows Farm", area: "Sohna", vendorId: "tent", brief: "Ivory, blush pink or champagne gold only. No red or maroon decor." },
+  { id: "flowers", title: "Check mandap flowers", place: "Flower stall near venue", area: "Sohna", vendorId: "tent", brief: "Check flowers against the ivory, blush and champagne palette; flag orange, red or maroon." },
+  { id: "dress", title: "Check bridal dress", place: "Bridal boutique", area: "Sector 29", vendorId: "dress", brief: "Confirm Priya's maroon lehenga is ready; maroon is allowed for the dress, not decor." },
+];
+// Approximate, illustrative distances for this preview, not live location or routing.
+const previewDistances: Record<HelperArea, Record<HelperArea, number>> = {
+  Sohna: { Sohna: 3, "Sector 29": 28, "Golf Course Road": 23, "Cyber City": 34 },
+  "Sector 29": { Sohna: 28, "Sector 29": 2, "Golf Course Road": 9, "Cyber City": 8 },
+  "Golf Course Road": { Sohna: 23, "Sector 29": 9, "Golf Course Road": 2, "Cyber City": 11 },
+  "Cyber City": { Sohna: 34, "Sector 29": 8, "Golf Course Road": 11, "Cyber City": 2 },
+};
+export const previewDistance = (from: HelperArea, to: HelperArea) => previewDistances[from][to];
+
 export const images = {
   hero: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=70",
   marigold: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=900&q=70",

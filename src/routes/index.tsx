@@ -4,13 +4,14 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Activity, ArrowLeft, CalendarHeart, Camera, Check, ChevronDown, ChevronRight, ListChecks, Phone, Send, ShieldCheck, Store, Users } from "lucide-react";
+import { Activity, ArrowLeft, CalendarHeart, Check, ChevronDown, ChevronRight, ListChecks, Phone, Send, ShieldCheck, Store, Users } from "lucide-react";
 import {
   activity as initialActivity, decisions as allDecisions, gaps as allGaps, guests as initialGuests, handled as initialHandled,
-  images, today, vendors, wedding, type Decision, type Payment,
+  checkTasks, helpers as initialHelpers, images, previewDistance, today, vendors, wedding, type CheckTask, type Decision, type Helper, type HelperArea, type Payment,
 } from "@/data/wedding";
 import { Banner, Chip, GoldCard, SectionTitle } from "@/components/zenin/ui";
 import { DecisionCard } from "@/components/zenin/DecisionCard";
+import { OnGround, type CheckAssignment } from "@/components/zenin/OnGround";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/")({
 type Tab = "today" | "decisions" | "vendors" | "guests";
 type Decided = Decision & { ok: boolean };
 type Resolve = (id: string, ok: boolean) => void;
-type GroundReport = { observation: string; photoName?: string; status: "Verified" | "Decision needed" | "Needs review" };
+type GroundProps = { helpers: Helper[]; assignments: CheckAssignment[]; addHelper: (name: string, relation: string, area: HelperArea) => void; assign: (task: CheckTask) => void; submitReport: (task: CheckTask, observation: string, photoName?: string) => void; goDecisions: () => void };
 
 function App() {
   const [tab, setTab] = useState<Tab>("today");
@@ -40,7 +41,8 @@ function App() {
   const [handled, setHandled] = useState(initialHandled);
   const [activity, setActivity] = useState(initialActivity);
   const [payments, setPayments] = useState<Record<string, Payment>>(() => Object.fromEntries(vendors.map((v) => [v.id, v.payment])));
-  const [groundReport, setGroundReport] = useState<GroundReport | null>(null);
+  const [helpers, setHelpers] = useState<Helper[]>(initialHelpers);
+  const [assignments, setAssignments] = useState<CheckAssignment[]>([]);
 
   const log = (h?: string, a?: string) => {
     if (h) setHandled((x) => [h, ...x]);
@@ -56,32 +58,45 @@ function App() {
   };
   const addDecision = (d: Decision) => setPending((p) => [d, ...p]);
   const go = (t: Tab) => { setTab(t); window.scrollTo({ top: 0 }); };
-  const submitGroundReport = (observation: string, photoName?: string) => {
-    const conflicts = /red|maroon|orange/i.test(observation);
-    const matches = /ivory|blush|champagne/i.test(observation) && /drape|mandap|flower/i.test(observation);
+  const addHelper: GroundProps["addHelper"] = (name, relation, area) => { setHelpers((items) => [...items, { id: `helper-${Date.now()}`, name, relation, area, available: true }]); toast(`${name} added as a helper`); };
+  const assign: GroundProps["assign"] = (task) => {
+    const nearest = [...helpers].filter((helper) => helper.available).sort((a, b) => previewDistance(a.area, task.area) - previewDistance(b.area, task.area))[0];
+    if (!nearest) return;
+    setHelpers((items) => items.map((helper) => helper.id === nearest.id ? { ...helper, available: false } : helper));
+    setAssignments((items) => [{ taskId: task.id, helperId: nearest.id, distance: previewDistance(nearest.area, task.area), status: "Assigned" }, ...items]);
+    log(undefined, `Delhivery preview matched ${nearest.name} to ${task.title.toLowerCase()} · ~${previewDistance(nearest.area, task.area)} km`);
+    toast(`${nearest.name} assigned in preview`);
+  };
+  const submitReport: GroundProps["submitReport"] = (task, observation, photoName) => {
+    const helper = helpers.find((person) => person.id === assignments.find((item) => item.taskId === task.id)?.helperId);
+    if (!helper) return;
+    const conflicts = task.id === "dress" ? /not ready|missing|wrong size|damaged|red dress/i.test(observation) : /red|maroon|orange/i.test(observation);
+    const matches = task.id === "dress" ? /ready|fits|collected|maroon lehenga/i.test(observation) : /ivory|blush|champagne/i.test(observation) && /drape|mandap|flower/i.test(observation);
     const status = conflicts ? "Decision needed" : matches ? "Verified" : "Needs review";
-    setGroundReport({ observation, ...(photoName ? { photoName } : {}), status });
+    setAssignments((items) => items.map((item) => item.taskId === task.id ? { ...item, observation, ...(photoName ? { photoName } : {}), status } : item));
+    if (status !== "Needs review") setHelpers((items) => items.map((person) => person.id === helper.id ? { ...person, available: true } : person));
     if (conflicts) {
-      setPending((items) => items.some((item) => item.id === "ground-check") ? items : [{
-        id: "ground-check", vendorId: "tent", who: "Rohit Sharma", role: "On-ground check · Chaudhary Tent and Decor",
-        ask: `Rohit reported: “${observation}”`, why: "Changes the theme",
-        suggestion: "Gnani found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
+      setPending((items) => items.some((item) => item.id === `ground-${task.id}`) ? items : [{
+        id: `ground-${task.id}`, vendorId: task.vendorId, who: helper.name, role: `Delhivery helper check · ${task.title}`,
+        ask: `${helper.name} reported: “${observation}”`, why: task.id === "dress" ? "Dress needs attention" : "Changes the theme",
+        suggestion: task.id === "dress" ? "Gnani could not confirm the dress is ready. Check with the boutique before approving." : "Gnani found a colour outside the approved decor palette. Ask for ivory, blush pink or champagne gold instead.",
       }, ...items]);
-      log(undefined, "Gnani escalated Rohit's on-ground update to Decisions");
-      toast("Theme conflict sent to Decisions");
+      log(undefined, `Zenin escalated ${helper.name}'s ${task.title.toLowerCase()} update to Decisions`);
+      toast("Check conflict sent to Decisions");
     } else if (matches) {
-      log("Rohit's mandap update matches the approved decor palette. Marked verified in this preview.", "Gnani checked Rohit's on-ground update against the theme");
+      log(`${helper.name}'s ${task.title.toLowerCase()} update matched the requirements in preview.`, `Zenin verified ${helper.name}'s written update in preview`);
       toast("On-ground update verified");
     } else {
       toast("Update saved for review");
     }
   };
+  const ground: GroundProps = { helpers, assignments, addHelper, assign, submitReport, goDecisions: () => go("decisions") };
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} groundReport={groundReport} submitGroundReport={submitGroundReport} />}
-      {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} groundReport={groundReport} />}
-      {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
+      {tab === "today" && <TodayTab pending={pending} resolve={resolve} handled={handled} activity={activity} log={log} addDecision={addDecision} goDecisions={() => go("decisions")} ground={ground} />}
+      {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} ground={ground} />}
+      {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} ground={ground} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
       {tab === "guests" && <GuestsTab log={log} />}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-gold/40 bg-card/95 backdrop-blur">
         <div className="mx-auto grid max-w-md grid-cols-4">
@@ -174,8 +189,8 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   );
 }
 
-function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions, groundReport, submitGroundReport }: {
-  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void;
+function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDecisions, ground }: {
+  pending: Decision[]; resolve: Resolve; handled: string[]; activity: string[]; log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; goDecisions: () => void; ground: GroundProps;
 }) {
   const days = useDaysLeft();
   const [open, setOpen] = useState(false);
@@ -232,7 +247,7 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
           ))}
         </div>
         <SectionTitle>On-ground verification</SectionTitle>
-        <GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} />
+        <OnGround {...ground} />
         <SectionTitle>Zenin activity</SectionTitle>
         <div className="space-y-2 border-l-2 border-gold/50 pl-4">
           {activity.slice(0, 6).map((a, i) => (
@@ -244,41 +259,7 @@ function TodayTab({ pending, resolve, handled, activity, log, addDecision, goDec
   );
 }
 
-function GroundCheck({ report, onSubmit, goDecisions }: { report: GroundReport | null; onSubmit: (text: string, photoName?: string) => void; goDecisions: () => void }) {
-  const [observation, setObservation] = useState("");
-  const [photoName, setPhotoName] = useState<string | undefined>();
-  return (
-    <GoldCard>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold">Assigned to {wedding.deputy}</p>
-          <p className="mt-1 font-semibold">Check mandap drapes at the venue</p>
-          <p className="text-xs text-muted-foreground">Rohit visits · sends a photo or text update · Gnani checks the decor rule</p>
-        </div>
-        <Chip label={report?.status ?? "Waiting for update"} />
-      </div>
-      {report && (
-        <div className="mt-3 border-l-2 border-gold pl-3 text-sm">
-          <p className="font-medium">Rohit's update: {report.observation}</p>
-          {report.photoName && <p className="text-xs text-muted-foreground"><Camera className="mr-1 inline h-3 w-3" />{report.photoName} attached · photo not analysed</p>}
-          <p className="mt-1 text-muted-foreground">{report.status === "Verified" ? "Gnani matched the written update to ivory, blush or champagne decor. Verified in preview." : report.status === "Decision needed" ? "Gnani found a theme conflict and sent it to Priya for approval." : "The update is unclear. Gnani cannot verify it yet; ask Rohit for details."}</p>
-          {report.status === "Decision needed" && <Button variant="link" className="h-auto p-0" onClick={goDecisions}>View decision <ChevronRight className="h-4 w-4" /></Button>}
-        </div>
-      )}
-      <form className="mt-4 space-y-2" onSubmit={(e) => { e.preventDefault(); if (!observation.trim()) return; onSubmit(observation.trim(), photoName); setObservation(""); setPhotoName(undefined); }}>
-        <label htmlFor="ground-observation" className="text-xs font-semibold text-muted-foreground">Rohit's on-site update (preview)</label>
-        <Input id="ground-observation" value={observation} onChange={(e) => setObservation(e.target.value)} placeholder="e.g. Ivory mandap drapes installed" required />
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <label className="flex cursor-pointer items-center gap-1.5 text-xs text-primary"><Camera className="h-4 w-4" />{photoName ?? "Attach photo (optional)"}<input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhotoName(e.target.files?.[0]?.name)} /></label>
-          <Button type="submit" size="sm">Submit update</Button>
-        </div>
-        <p className="text-xs text-muted-foreground">This preview checks the written update only; attached photos are not analysed or sent.</p>
-      </form>
-    </GoldCard>
-  );
-}
-
-function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; groundReport: GroundReport | null }) {
+function DecisionsTab({ pending, decided, resolve, ground }: { pending: Decision[]; decided: Decided[]; resolve: Resolve; ground: GroundProps }) {
   return (
     <>
       <Banner src={images.petals} title="Decisions" subtitle={`${pending.length} waiting for you`} />
@@ -287,7 +268,7 @@ function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: De
         {pending.map((d) => <DecisionCard key={d.id} d={d} onResolve={resolve} />)}
         {pending.length === 0 && <GoldCard><p className="font-serif text-lg text-maroon">All clear.</p><p className="text-sm text-muted-foreground">Zenin will call you if anything new comes up.</p></GoldCard>}
         <SectionTitle>On-ground verification</SectionTitle>
-        <GoldCard><p className="text-sm">Rohit Sharma · Mandap drapes</p><div className="mt-2"><Chip label={groundReport?.status ?? "Waiting for update"} /></div><p className="mt-2 text-xs text-muted-foreground">{groundReport ? `Rohit reported: ${groundReport.observation}` : "Rohit has not sent an on-site update yet."}</p></GoldCard>
+        <GoldCard className="p-0"><ul className="divide-y divide-border">{checkTasks.map((task) => { const report = ground.assignments.find((item) => item.taskId === task.id); const helper = ground.helpers.find((item) => item.id === report?.helperId); return <li key={task.id} className="flex items-center justify-between gap-3 p-4 text-sm"><div><p className="font-medium">{task.title}</p><p className="text-xs text-muted-foreground">{helper?.name ?? "Not assigned"} · {report?.observation ?? "Awaiting on-site update"}</p></div><Chip label={report?.status ?? "Pending"} /></li>; })}</ul></GoldCard>
         {decided.length > 0 && (
           <>
             <SectionTitle>Decided</SectionTitle>
@@ -308,12 +289,12 @@ function DecisionsTab({ pending, decided, resolve, groundReport }: { pending: De
   );
 }
 
-function VendorsTab({ payments, pending, decided, groundReport, submitGroundReport, goDecisions, setPayment }: { payments: Record<string, Payment>; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; setPayment: (id: string, p: Payment) => void }) {
+function VendorsTab({ payments, pending, decided, ground, goDecisions, setPayment }: { payments: Record<string, Payment>; pending: Decision[]; decided: Decided[]; ground: GroundProps; goDecisions: () => void; setPayment: (id: string, p: Payment) => void }) {
   const [selId, setSelId] = useState<string | null>(null);
   const sel = vendors.find((v) => v.id === selId);
   if (sel) {
     const payment = payments[sel.id] ?? sel.payment;
-    return <VendorDetail v={sel} payment={payment} pending={pending} decided={decided} groundReport={groundReport} submitGroundReport={submitGroundReport} goDecisions={goDecisions} verify={() => setPayment(sel.id, { ...payment, delivery: "Verified", final: "Approved", reason: "Verification marked complete in this preview. No payment has been sent." })} back={() => setSelId(null)} />;
+    return <VendorDetail v={sel} payment={payment} pending={pending} decided={decided} ground={ground} goDecisions={goDecisions} verify={() => setPayment(sel.id, { ...payment, delivery: "Verified", final: "Approved", reason: "Verification marked complete in this preview. No payment has been sent." })} back={() => setSelId(null)} />;
   }
   return (
     <>
@@ -337,9 +318,9 @@ function VendorsTab({ payments, pending, decided, groundReport, submitGroundRepo
   );
 }
 
-function VendorDetail({ v, payment, pending, decided, groundReport, submitGroundReport, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; groundReport: GroundReport | null; submitGroundReport: (text: string, photoName?: string) => void; goDecisions: () => void; verify: () => void; back: () => void }) {
+function VendorDetail({ v, payment, pending, decided, ground, goDecisions, verify, back }: { v: (typeof vendors)[number]; payment: Payment; pending: Decision[]; decided: Decided[]; ground: GroundProps; goDecisions: () => void; verify: () => void; back: () => void }) {
   const canVerify = payment.final === "Held";
-  const deliveryReady = v.id !== "tent" || groundReport?.status === "Verified";
+  const deliveryReady = v.id !== "tent" || ground.assignments.find((item) => item.taskId === "mandap")?.status === "Verified";
   const vendorRequests = pending.filter((d) => d.vendorId === v.id);
   const vendorDecisions = decided.filter((d) => d.vendorId === v.id);
   return (
@@ -379,7 +360,7 @@ function VendorDetail({ v, payment, pending, decided, groundReport, submitGround
         ))}
          {vendorDecisions.map((d) => <p key={d.id} className="text-sm">Gnani informed {d.who}: <strong>{d.ok ? "Approved" : "Declined"}</strong> by Priya.</p>)}
       </div>
-       {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><GroundCheck report={groundReport} onSubmit={submitGroundReport} goDecisions={goDecisions} /></>}
+       {v.id === "tent" && <><SectionTitle>On-ground verification</SectionTitle><OnGround {...ground} vendorId={v.id} /></>}
        <SectionTitle>Payment verification · Pine Labs</SectionTitle>
       <GoldCard className="p-0">
         <ul className="divide-y divide-border">
@@ -395,7 +376,7 @@ function VendorDetail({ v, payment, pending, decided, groundReport, submitGround
                <ShieldCheck className="h-4 w-4" /> Mark verified & approve in preview
             </Button>
           )}
-           {canVerify && !deliveryReady && <p className="mt-2 text-xs text-muted-foreground">Waiting for Rohit's on-ground update to be verified.</p>}
+           {canVerify && !deliveryReady && <p className="mt-2 text-xs text-muted-foreground">Waiting for the mandap check to be verified.</p>}
            <p className="mt-2 text-[11px] text-muted-foreground">Pine Labs is not connected. This only updates the screen.</p>
         </div>
       </GoldCard>

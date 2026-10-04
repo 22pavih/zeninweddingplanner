@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep wedding flow examples and UI-only verification in in-memory state; no vendor calls, image analysis, or Pine Labs payment execution is available without integrations, so label simulations honestly.
+- Keep helper assignment and check reports in shared in-memory page state; this lets Today, Decisions and Vendors show the same simulated Delhivery result without implying live location or dispatch.

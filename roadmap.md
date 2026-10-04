@@ -2,3 +2,7 @@
 - [x] Add a visible on-ground verification flow with helper updates and decision escalation.
 - [x] Label payment verification and approval as Pine Labs preview states.
 - [x] Verify the flows in the running app.
+- [x] Show Priya's helper list and allow her to add a relative with a demo area.
+- [x] Assign the nearest available helper to dress or flower checks through a clearly simulated Delhivery flow.
+- [x] Show the helper's report and Zenin's verification or escalation result in Today and Vendors.
+- [x] Check the flow on mobile.
