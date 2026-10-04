@@ -14,7 +14,7 @@ export type CheckAssignment = {
   status: "Assigned" | "Verified" | "Decision needed" | "Needs review";
 };
 
-export function OnGround({ helpers, assignments, addHelper, assign, submitReport, goDecisions, vendorId }: {
+export function OnGround({ helpers, assignments, addHelper, assign, submitReport, goDecisions, vendorId, mode = "checks" }: {
   helpers: Helper[];
   assignments: CheckAssignment[];
   addHelper: (name: string, relation: string, area: HelperArea) => void;
@@ -22,6 +22,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
   submitReport: (task: CheckTask, observation: string, photoName?: string) => void;
   goDecisions: () => void;
   vendorId?: string;
+  mode?: "helpers" | "checks";
 }) {
   const [name, setName] = useState("");
   const [relation, setRelation] = useState("");
@@ -37,7 +38,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
 
   return (
     <div className="space-y-3">
-      {!vendorId && <GoldCard>
+      {mode === "helpers" && <GoldCard>
         <p className="font-semibold text-maroon">Priya's helpers</p>
         <p className="mt-1 text-xs text-muted-foreground">Sample relatives on Priya's helper list · areas entered manually for this preview</p>
         <ul className="mt-3 divide-y divide-border">
@@ -52,7 +53,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
           <div className="flex gap-2"><select aria-label="Helper area" className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm" value={area} onChange={(event) => setArea(event.target.value as HelperArea)}>{helperAreas.map((option) => <option key={option}>{option}</option>)}</select><Button size="sm" type="submit"><Plus className="h-4 w-4" /> Add</Button></div>
         </form>
       </GoldCard>}
-      {selected && <GoldCard>
+      {mode === "checks" && selected && <GoldCard>
         <p className="text-xs font-semibold text-gold">DELHIVERY · ON-GROUND CHECK PREVIEW</p>
         {tasks.length > 1 && <select aria-label="Check to assign" className="mt-2 h-10 w-full rounded-md border border-input bg-background px-2 text-sm font-semibold" value={selected.id} onChange={(event) => { setTaskId(event.target.value); setObservation(""); setPhotoName(undefined); }}>{tasks.map((task) => <option value={task.id} key={task.id}>{task.title}</option>)}</select>}
         {tasks.length === 1 && <p className="mt-2 font-semibold">{selected.title}</p>}
@@ -73,7 +74,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
           </form>
         </div>}
       </GoldCard>}
-      {assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).length > 0 && <GoldCard><p className="font-semibold text-maroon">Check results</p><ul className="mt-2 divide-y divide-border">{assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).map((item) => { const task = checkTasks.find((t) => t.id === item.taskId); const person = helpers.find((h) => h.id === item.helperId); return <li key={item.taskId} className="flex items-center justify-between gap-2 py-2 text-sm"><span className="min-w-0"><strong>{task?.title}</strong><span className="block text-xs text-muted-foreground">{person?.name} · {item.observation ?? "Awaiting update"}</span></span><Chip label={item.status} /></li>; })}</ul></GoldCard>}
+      {mode === "checks" && assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).length > 0 && <GoldCard><p className="font-semibold text-maroon">Check results</p><ul className="mt-2 divide-y divide-border">{assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).map((item) => { const task = checkTasks.find((t) => t.id === item.taskId); const person = helpers.find((h) => h.id === item.helperId); return <li key={item.taskId} className="flex items-center justify-between gap-2 py-2 text-sm"><span className="min-w-0"><strong>{task?.title}</strong><span className="block text-xs text-muted-foreground">{person?.name} · {item.observation ?? "Awaiting update"}</span></span><Chip label={item.status} /></li>; })}</ul></GoldCard>}
     </div>
   );
 }
