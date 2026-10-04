@@ -14,6 +14,20 @@ const chipStyles: Record<string, string> = {
   "Confirmed on call": "bg-gold/15 text-maroon border-gold/50",
   Promised: "bg-muted text-muted-foreground border-border",
   "Not needed": "bg-muted text-muted-foreground border-border",
+  Confirmed: "bg-gold/15 text-maroon border-gold/50",
+  Contacted: "bg-gold/15 text-maroon border-gold/50",
+  "Vendor contacted": "bg-gold/15 text-maroon border-gold/50",
+  "Zenin is handling this": "bg-gold/15 text-maroon border-gold/50",
+  "Photo received": "bg-gold/15 text-maroon border-gold/50",
+  Approved: "bg-success/10 text-success border-success/30",
+  "At Risk": "bg-warning/10 text-warning border-warning/40",
+  "Payment Pending": "bg-warning/10 text-warning border-warning/40",
+  "Verification ongoing": "bg-warning/10 text-warning border-warning/40",
+  "Waiting for photo": "bg-warning/10 text-warning border-warning/40",
+  Held: "bg-primary/10 text-primary border-primary/30",
+  Issue: "bg-primary/10 text-primary border-primary/30",
+  Declined: "bg-primary/10 text-primary border-primary/30",
+  "Decision needed": "bg-primary/10 text-primary border-primary/30",
 };
 
 export function Chip({ label }: { label: string }) {
