@@ -13,3 +13,4 @@
 - [ ] Add Dashboard and Moodboards navigation with five event inspiration cards.
 - [ ] Add native voice transcription to Tell Zenin.
 - [ ] Add helper call dialogs and verify the requested interactions.
+- [ ] Use the bride's uploaded wedding photo as the default cover.
