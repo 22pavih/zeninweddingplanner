@@ -24,6 +24,13 @@
   --color-wedding-dusty-rose: var(--wedding-dusty-rose);
   --color-wedding-floral-pink: var(--wedding-floral-pink);
   --color-wedding-brass: var(--wedding-brass);
+  --color-reception-ruby: var(--reception-ruby);
+  --color-reception-wine: var(--reception-wine);
+  --color-reception-bougainvillea: var(--reception-bougainvillea);
+  --color-reception-black: var(--reception-black);
+  --color-haldi-turmeric: var(--haldi-turmeric);
+  --color-haldi-marigold: var(--haldi-marigold);
+  --color-haldi-leaf: var(--haldi-leaf);
   --color-maroon: var(--maroon);
   --color-gold: var(--gold);
   --color-success: var(--success);
@@ -78,6 +85,13 @@
   --wedding-dusty-rose: oklch(0.69 0.065 24);
   --wedding-floral-pink: oklch(0.64 0.16 355);
   --wedding-brass: oklch(0.68 0.11 85);
+  --reception-ruby: oklch(0.51 0.19 25);
+  --reception-wine: oklch(0.35 0.11 10);
+  --reception-bougainvillea: oklch(0.55 0.21 350);
+  --reception-black: oklch(0.2 0.01 90);
+  --haldi-turmeric: oklch(0.86 0.17 90);
+  --haldi-marigold: oklch(0.74 0.18 55);
+  --haldi-leaf: oklch(0.48 0.09 130);
   --radius: 1rem;
   --background: #FBF6EE;
   --foreground: #2B1A14;

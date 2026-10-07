@@ -18,4 +18,4 @@
 - [x] Use the bride's two uploaded photos for the Haldi card.
 - [x] Use the bride's two uploaded photos for the Reception card.
 - [ ] Update Reception with five uploaded reference photos and matching palette, decor and outfit descriptions; verify the card.
-- [ ] Confirm whether the new turmeric and marigold photos should replace Wedding or update Haldi, then update that event's photos, colours and descriptions.
+- [ ] Update Haldi with the five turmeric and marigold photos and matching colours and descriptions; preserve Wedding as confirmed.
