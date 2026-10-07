@@ -14,8 +14,17 @@ import { FlowerErrand } from "@/components/zenin/FlowerErrand";
 import { DecisionCard } from "@/components/zenin/DecisionCard";
 import { Ledger, initialLedger, inr, ledgerTotals, type LedgerRow } from "@/components/zenin/Ledger";
 import { OnGround, type CheckAssignment } from "@/components/zenin/OnGround";
+import coverAsset from "@/assets/wedding-cover.jpg.asset.json";
+import { CoverPhoto } from "@/components/zenin/CoverPhoto";
+import { VoiceInput } from "@/components/zenin/VoiceInput";
+import { BottomNav, type WeddingTab } from "@/components/zenin/BottomNav";
+import { MoodboardsContent } from "./moodboards";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { tab?: WeddingTab } => {
+    const tab = search['tab'];
+    return tab === "today" || tab === "give" || tab === "decisions" || tab === "vendors" || tab === "guests" || tab === "moodboards" ? { tab } : {};
+  },
   head: () => ({
     meta: [
       { title: "Zenin · Priya's Wedding Dashboard" },
@@ -24,20 +33,20 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Zenin handles the wedding routine and brings Priya only the decisions that need her." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:image", content: images.hero },
-      { name: "twitter:image", content: images.hero },
     ],
   }),
   component: App,
 });
 
-type Tab = "today" | "give" | "decisions" | "vendors" | "guests";
+type Tab = WeddingTab;
 type Decided = Decision & { ok: boolean };
 type Resolve = (id: string, ok: boolean) => void;
 type GroundProps = { helpers: Helper[]; assignments: CheckAssignment[]; addHelper: (name: string, relation: string, area: HelperArea) => void; assign: (task: CheckTask) => void; submitReport: (task: CheckTask, observation: string, photoName?: string) => void; goDecisions: () => void };
 
 function App() {
-  const [tab, setTab] = useState<Tab>("today");
+  const search = Route.useSearch();
+  const [tab, setTab] = useState<Tab>(search.tab ?? "today");
+  const [cover, setCover] = useState(coverAsset.url);
   const [pending, setPending] = useState<Decision[]>(allDecisions);
   const [decided, setDecided] = useState<Decided[]>([]);
   const [handled, setHandled] = useState(initialHandled);
@@ -98,32 +107,15 @@ function App() {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
-      {tab === "today" && <TodayTab pending={priyaPending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} ledger={ledger} addLedgerRow={(r) => setLedger((l) => [r, ...l])} />}
+      {tab === "today" && <TodayTab cover={cover} setCover={setCover} pending={priyaPending} handled={handled} activity={activity} goDecisions={() => go("decisions")} ground={ground} ledger={ledger} addLedgerRow={(r) => setLedger((l) => [r, ...l])} />}
       <div className={tab === "give" ? "" : "hidden"} aria-hidden={tab !== "give"}>
-        <GiveTab log={log} addDecision={addDecision} ground={ground} />
+        <GiveTab active={tab === "give"} log={log} addDecision={addDecision} ground={ground} />
       </div>
       {tab === "decisions" && <DecisionsTab pending={pending} decided={decided} resolve={resolve} ground={ground} />}
       {tab === "vendors" && <VendorsTab payments={payments} pending={pending} decided={decided} ground={ground} goDecisions={() => go("decisions")} setPayment={(id, p) => { setPayments((x) => ({ ...x, [id]: p })); log(undefined, "Pine Labs payment approval recorded in preview"); }} />}
       {tab === "guests" && <GuestsTab log={log} />}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-gold/40 bg-card/95 backdrop-blur">
-        <div className="mx-auto grid max-w-md grid-cols-5">
-          {([
-            ["today", "Today", CalendarHeart],
-            ["give", "Ask", MessageCircle],
-            ["decisions", "Decisions", ListChecks],
-            ["vendors", "Vendors", Store],
-            ["guests", "Guests", Users],
-          ] as const).map(([id, label, Icon]) => (
-            <Button key={id} variant="ghost" onClick={() => go(id)} aria-current={tab === id ? "page" : undefined} className={`relative h-16 min-w-0 flex-col gap-1 rounded-none px-0 py-2 text-[11px] ${tab === id ? "text-primary" : "text-muted-foreground"}`}>
-              <Icon className="h-5 w-5" />
-              {label}
-              {id === "decisions" && priyaPending.length > 0 && (
-                <span className="absolute right-2 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">{priyaPending.length}</span>
-              )}
-            </Button>
-          ))}
-        </div>
-      </nav>
+      {tab === "moodboards" && <MoodboardsContent />}
+      <BottomNav active={tab} count={priyaPending.length} onSelect={go} />
       <Toaster position="top-center" />
     </div>
   );
@@ -142,7 +134,7 @@ function useDaysLeft() {
 
 type Instruction = { id: number; text: string; status: string; result?: string };
 
-function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void }) {
+function AskZenin({ log, addDecision, active }: { log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; active: boolean }) {
   const [text, setText] = useState("");
   const [items, setItems] = useState<Instruction[]>([]);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -178,6 +170,7 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
        <p className="text-xs text-muted-foreground">Type an instruction to preview how Zenin works. No vendor is contacted.</p>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask the decorator if they can deliver the chairs by 19:00" />
+        <VoiceInput text={text} onText={setText} active={active} />
         <Button type="submit" size="icon" aria-label="Send instruction"><Send className="h-4 w-4" /></Button>
       </form>
       {items.length > 0 && (
@@ -197,17 +190,18 @@ function AskZenin({ log, addDecision }: { log: (h?: string, a?: string) => void;
   );
 }
 
-function GiveTab({ log, addDecision, ground }: { log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; ground: GroundProps }) {
+function GiveTab({ log, addDecision, ground, active }: { log: (h?: string, a?: string) => void; addDecision: (d: Decision) => void; ground: GroundProps; active: boolean }) {
   return <>
     <Banner src={images.marigold} title="Give Zenin a task" subtitle="Your instructions and your people" />
     <div className="space-y-5 px-5 pt-6">
-      <AskZenin log={log} addDecision={addDecision} />
+      <AskZenin log={log} addDecision={addDecision} active={active} />
       <OnGround {...ground} mode="helpers" />
     </div>
   </>;
 }
 
-function TodayTab({ pending, handled, activity, goDecisions, ground, ledger, addLedgerRow }: {
+function TodayTab({ pending, handled, activity, goDecisions, ground, ledger, addLedgerRow, cover, setCover }: {
+  cover: string; setCover: (url: string) => void;
   pending: Decision[]; handled: string[]; activity: string[]; goDecisions: () => void; ground: GroundProps; ledger: LedgerRow[]; addLedgerRow: (r: LedgerRow) => void;
 }) {
   const days = useDaysLeft();
@@ -218,8 +212,9 @@ function TodayTab({ pending, handled, activity, goDecisions, ground, ledger, add
   return (
     <>
       <div className="relative h-80 overflow-hidden bg-maroon">
-        <img src={images.hero} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={cover} alt="Priya and Arjun's wedding cover" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-maroon via-primary/75 to-maroon/30" />
+        <CoverPhoto onChange={setCover} />
         <div className="relative flex h-full flex-col justify-between p-5 text-primary-foreground">
           <p className="font-serif text-lg tracking-wide text-gold">Zenin</p>
           <div>

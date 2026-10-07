@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Camera, ChevronRight, MapPin, Plus, UserRound } from "lucide-react";
+import { Camera, ChevronRight, MapPin, Phone, Plus, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { checkTasks, helperAreas, previewDistance, type CheckTask, type Helper, type HelperArea } from "@/data/wedding";
 import { Chip, GoldCard } from "./ui";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export type CheckAssignment = {
   taskId: string;
@@ -30,6 +31,8 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
   const [taskId, setTaskId] = useState("mandap");
   const [observation, setObservation] = useState("");
   const [photoName, setPhotoName] = useState<string>();
+  const [callHelper, setCallHelper] = useState<Helper | undefined>();
+  const [phone, setPhone] = useState("");
   const tasks = vendorId ? checkTasks.filter((task) => task.vendorId === vendorId) : checkTasks;
   const selected = tasks.find((task) => task.id === taskId) ?? tasks[0];
   const assignment = selected ? assignments.find((item) => item.taskId === selected.id) : undefined;
@@ -44,7 +47,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
         <ul className="mt-3 divide-y divide-border">
           {helpers.map((item) => <li key={item.id} className="flex items-center justify-between gap-3 py-2 text-sm">
             <span className="flex min-w-0 items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-gold" /><span className="min-w-0"><strong>{item.name}</strong> · {item.relation}<span className="block text-xs text-muted-foreground">{item.area}</span></span></span>
-            <Chip label={item.available ? "Available" : "Assigned"} />
+            <span className="flex shrink-0 flex-col items-end gap-1"><Chip label={item.available ? "Available" : "Assigned"} /><Button size="sm" variant="outline" aria-label={`Call ${item.name}`} onClick={() => { setCallHelper(item); setPhone(""); }}><Phone className="h-3.5 w-3.5" />Call</Button></span>
           </li>)}
         </ul>
         <form className="mt-3 space-y-2 border-t border-border pt-3" onSubmit={(event) => { event.preventDefault(); if (!name.trim() || !relation.trim()) return; addHelper(name.trim(), relation.trim(), area); setName(""); setRelation(""); }}>
@@ -75,6 +78,7 @@ export function OnGround({ helpers, assignments, addHelper, assign, submitReport
         </div>}
       </GoldCard>}
       {mode === "checks" && assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).length > 0 && <GoldCard><p className="font-semibold text-maroon">Check results</p><ul className="mt-2 divide-y divide-border">{assignments.filter((item) => !vendorId || checkTasks.some((task) => task.id === item.taskId && task.vendorId === vendorId)).map((item) => { const task = checkTasks.find((t) => t.id === item.taskId); const person = helpers.find((h) => h.id === item.helperId); return <li key={item.taskId} className="flex items-center justify-between gap-2 py-2 text-sm"><span className="min-w-0"><strong>{task?.title}</strong><span className="block text-xs text-muted-foreground">{person?.name} · {item.observation ?? "Awaiting update"}</span></span><Chip label={item.status} /></li>; })}</ul></GoldCard>}
+      <Dialog open={Boolean(callHelper)} onOpenChange={(open) => { if (!open) setCallHelper(undefined); }}><DialogContent className="max-w-sm rounded-2xl border-gold/50"><DialogHeader><DialogTitle className="font-serif text-maroon">Call {callHelper?.name}</DialogTitle><DialogDescription>{callHelper?.relation} · {callHelper?.area} · {callHelper?.available ? "Available" : "Assigned"}</DialogDescription></DialogHeader><p className="text-sm text-muted-foreground">No phone number is saved for this helper. Enter their number to open your phone's dialer.</p><Input type="tel" aria-label="Helper phone number" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} />{/^\+?[\d\s()-]{7,20}$/.test(phone) ? <Button asChild><a href={`tel:${phone.replace(/[^+\d]/g, "")}`}><Phone className="h-4 w-4" />Open dialer</a></Button> : <Button disabled><Phone className="h-4 w-4" />Open dialer</Button>}</DialogContent></Dialog>
     </div>
   );
 }
