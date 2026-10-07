@@ -14,3 +14,5 @@
 - [x] Add native voice transcription to Tell Zenin.
 - [x] Add helper call dialogs and verify the requested interactions.
 - [x] Use the bride's uploaded wedding photo as the default cover.
+- [x] Keep only Haldi, Wedding and Reception moodboards, with the Wedding card using one shared inspiration photo.
+- [ ] Use the bride's two uploaded photos for the Haldi card.
