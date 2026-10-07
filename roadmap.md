@@ -9,3 +9,7 @@
 - [x] Split bride instructions and helper list into their own view.
 - [x] Focus Today on pending/ongoing work and Delhivery assignments.
 - [x] Verify the new navigation and shared helper flow on mobile.
+- [ ] Add cover-photo URL and upload controls without changing the overlay.
+- [ ] Add Dashboard and Moodboards navigation with five event inspiration cards.
+- [ ] Add native voice transcription to Tell Zenin.
+- [ ] Add helper call dialogs and verify the requested interactions.
