@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import decor from "@/assets/moodboard-decor.jpg";
-import haldiPhoto from "@/assets/moodboard-haldi.jpg";
 import weddingPhoto from "@/assets/moodboard-wedding.jpg";
-import receptionPhoto from "@/assets/moodboard-reception.jpg";
-import outfitHaldi from "@/assets/outfit-haldi.jpg";
-import outfitWedding from "@/assets/outfit-wedding.jpg";
-import outfitReception from "@/assets/outfit-reception.jpg";
+import haldiDecorAsset from "@/assets/haldi-decor.jpg.asset.json";
+import haldiCoupleAsset from "@/assets/haldi-couple.jpg.asset.json";
+import receptionDecorAsset from "@/assets/reception-decor.jpg.asset.json";
+import receptionCoupleAsset from "@/assets/reception-couple.jpg.asset.json";
 import { Banner, GoldCard } from "@/components/zenin/ui";
 import { BottomNav } from "@/components/zenin/BottomNav";
 
@@ -15,9 +14,9 @@ export const Route = createFileRoute("/moodboards")({
 });
 
 const events = [
-  { name: "Haldi", theme: "Ivory courtyard morning", decor: "Ivory jasmine canopy, blush seating and brass bowls; turmeric reserved for the ritual.", bride: "Easy ivory cotton outfit with blush accents and floral accessories.", groom: "Ivory cotton kurta and trousers with a champagne stole.", photo: haldiPhoto, outfitPhoto: outfitHaldi },
+  { name: "Haldi", theme: "Ivory courtyard morning", decor: "Ivory jasmine canopy, blush seating and brass bowls; turmeric reserved for the ritual.", bride: "Easy ivory cotton outfit with blush accents and floral accessories.", groom: "Ivory cotton kurta and trousers with a champagne stole.", photo: haldiDecorAsset.url, outfitPhoto: haldiCoupleAsset.url },
   { name: "Wedding", theme: "Ivory, blush & champagne", decor: "Ivory mandap drapes, blush roses and gold chair covers. No red or maroon decor.", bride: "Priya's maroon lehenga with gold embroidery; maroon is for the outfit only. Designer to be confirmed.", groom: "Ivory sherwani with champagne embroidery and a blush safa.", photo: weddingPhoto, outfitPhoto: weddingPhoto },
-  { name: "Reception", theme: "Blush evening elegance", decor: "Ivory table linen, blush floral centrepieces and champagne candleholders.", bride: "Champagne embroidered saree or lehenga with blush jewellery accents.", groom: "Ivory tailored jacket with champagne accents and a blush pocket square.", photo: receptionPhoto, outfitPhoto: outfitReception },
+  { name: "Reception", theme: "Blush evening elegance", decor: "Ivory table linen, blush floral centrepieces and champagne candleholders.", bride: "Champagne embroidered saree or lehenga with blush jewellery accents.", groom: "Ivory tailored jacket with champagne accents and a blush pocket square.", photo: receptionDecorAsset.url, outfitPhoto: receptionCoupleAsset.url },
 ];
 function Moodboards() {
   return <div className="mx-auto min-h-screen max-w-md bg-background pb-24"><MoodboardsContent /><BottomNav active="moodboards" /></div>;
