@@ -22,7 +22,7 @@ import { MoodboardsContent } from "./moodboards";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { tab?: WeddingTab } => {
-    const tab = search.tab;
+    const tab = search['tab'];
     return tab === "today" || tab === "give" || tab === "decisions" || tab === "vendors" || tab === "guests" || tab === "moodboards" ? { tab } : {};
   },
   head: () => ({
