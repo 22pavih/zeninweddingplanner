@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import decor from "@/assets/moodboard-decor.jpg";
-import outfits from "@/assets/moodboard-outfits.jpg";
-import mehendi from "@/assets/moodboard-mehendi.jpg";
+import mehendiPhoto from "@/assets/moodboard-mehendi.jpg";
+import sangeetPhoto from "@/assets/moodboard-sangeet.jpg";
+import haldiPhoto from "@/assets/moodboard-haldi.jpg";
+import weddingPhoto from "@/assets/moodboard-wedding.jpg";
+import receptionPhoto from "@/assets/moodboard-reception.jpg";
+import outfitMehendi from "@/assets/outfit-mehendi.jpg";
+import outfitSangeet from "@/assets/outfit-sangeet.jpg";
+import outfitHaldi from "@/assets/outfit-haldi.jpg";
+import outfitWedding from "@/assets/outfit-wedding.jpg";
+import outfitReception from "@/assets/outfit-reception.jpg";
 import { Banner, GoldCard } from "@/components/zenin/ui";
 import { BottomNav } from "@/components/zenin/BottomNav";
 
